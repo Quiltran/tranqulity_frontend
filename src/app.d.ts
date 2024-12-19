@@ -8,6 +8,32 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+	interface Guild {
+		id: number;
+		name: string;
+		description: string;
+		owner_id: number;
+		channels: Channel[];
+		created_date: Date;
+		updated_date: Date;
+	}
+
+	interface Channel {
+		id: number;
+		name: string;
+		guild_id: number;
+		created_date: Date;
+		updated_date: Date;
+	}
+
+	interface Message {
+		id: number,
+		author_id: number,
+		content: string,
+		attachments: string[],
+		created_date: Date,
+		updated_date: Date,
+	}
 }
 
-export {};
+export { };

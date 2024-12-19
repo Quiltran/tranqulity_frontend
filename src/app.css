@@ -1,3 +1,23 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --text: #13031c;
+        --background: #f7edfd;
+        --primary: #8f1fea;
+        --secondary: #f278c7;
+        --accent: #ef57a3;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: #f3e3fc;
+        --background: #0c0212;
+        --primary: #8515e0;
+        --secondary: #870d5c;
+        --accent: #a8105c;
+    }
+}
