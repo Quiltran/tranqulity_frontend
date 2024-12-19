@@ -4,15 +4,13 @@
 	import { WebSocketClient } from '$lib/websocket';
 	import type { WebSocketClientProps } from '$lib/websocket';
 
-	let { auth, sendMessageCallback }: ChatProps = $props();
-	$inspect(auth);
+	let { auth }: ChatProps = $props();
 
 	const websocketToken = $state.snapshot(auth.websocket_token);
 	const userId = $state.snapshot(auth.id);
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild>();
-	$inspect(selectedGuild);
 
 	function failCallback() {
 		error = {
@@ -43,6 +41,10 @@
 		disconnectCallback,
 		reconnectCallback
 	} as WebSocketClientProps);
+
+	function sendMessageCallback() {
+		wsClient.sendMessage({});
+	}
 
 	$effect(() => {
 		fetch(`${import.meta.env.VITE_API_URL}/api/guild/`, {
