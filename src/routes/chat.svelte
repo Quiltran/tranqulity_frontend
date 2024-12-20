@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { swipe, type SwipePointerEventDetail } from 'svelte-gestures';
+	import { isMobile } from '$lib/utils/detectDevice';
 	import type { ChatProps } from '$lib/props/chat';
 	import GuildContent from '$lib/components/guildView.svelte';
 	import { WebSocketClient } from '$lib/websocket';
@@ -6,11 +8,21 @@
 
 	let { auth }: ChatProps = $props();
 
+	let onMobile = isMobile();
+	let direction = $state<SwipePointerEventDetail['direction'] | null>(null);
+
+	function handler(event: CustomEvent<SwipePointerEventDetail>) {
+		if (!onMobile) {
+			return;
+		}
+		direction = event.detail.direction;
+	}
+
 	const websocketToken = $state.snapshot(auth.websocket_token);
 	const userId = $state.snapshot(auth.id);
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
-	let selectedGuild = $state<Guild>();
+	let selectedGuild = $state<Guild | null>(null);
 
 	function failCallback() {
 		error = {
@@ -74,24 +86,43 @@
 {#if error}
 	<span>{error.message}</span>
 {:else}
-	<div class="grid h-full flex-1 grid-cols-guildView gap-2 px-2">
+	<div
+		class="grid h-full flex-1 gap-2 px-2 md:grid-cols-guildView"
+		use:swipe={{ timeframe: 300, minSwipeDistance: 100, touchAction: 'pan-y' }}
+		onswipe={handler}
+	>
 		<div
-			class="flex h-full w-full flex-col gap-2 justify-self-center overflow-y-auto border-r border-accent pr-2"
+			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid-cols-guildChannelView grid h-full px-2`}
 		>
-			<span>Guilds</span>
-			{#each guilds as guild}
-				<button
-					class="flex aspect-square w-full items-center justify-center rounded-full bg-primary transition-all duration-200 hover:rounded-lg"
-					onclick={() => {
-						selectedGuild = guild;
-					}}
+			<div
+				class={`flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background pr-2`}
+			>
+				<span>Guilds</span>
+				{#each guilds as guild}
+					<button
+						class="flex aspect-square w-full items-center justify-center rounded-full bg-primary transition-all duration-200 hover:rounded-lg"
+						onclick={() => {
+							selectedGuild = guild;
+						}}
+					>
+						{guild.name
+							.split(' ')
+							.map((part) => part[0].toUpperCase())
+							.join('')}
+					</button>
+				{/each}
+			</div>
+			<div class="flex w-full flex-col gap-3 border-r border-accent bg-background md:flex p-2">
+				<span>Channels</span>
+				{#each selectedGuild?.channels || [] as channel}
+					<span>{channel.name}</span>
+				{:else}
+					<span>This guild doesn't have a channel yet.</span>
+				{/each}
+				<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent"
+					>Create a Channel</button
 				>
-					{guild.name
-						.split(' ')
-						.map((part) => part[0].toUpperCase())
-						.join('')}
-				</button>
-			{/each}
+			</div>
 		</div>
 		<GuildContent channels={selectedGuild?.channels || []} {sendMessageCallback} />
 	</div>

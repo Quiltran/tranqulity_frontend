@@ -40,7 +40,7 @@
 	<form class="rounded-xl border-2 border-accent p-6" onsubmit={(e) => login(e)}>
 		<div class="flex flex-col gap-4 pb-10">
 			<h1 class="text-xl font-bold">Register</h1>
-			<span class="col-span-2">Register to gain full access to Tranquility</span>
+			<span class="md:col-span-2">Register to gain full access to Tranquility</span>
 		</div>
 		<div class="grid gap-5 md:grid-cols-2">
 			<label for="username" class="flex flex-col">
@@ -61,7 +61,7 @@
 					class="h-12 rounded-xl border border-accent bg-background p-2"
 				/>
 			</label>
-			<label for="password" class="col-span-2 flex flex-col">
+			<label for="password" class="md:col-span-2 flex flex-col">
 				Password
 				<input
 					type="password"
@@ -70,7 +70,7 @@
 					class="h-12 rounded-xl border border-accent bg-background p-2"
 				/>
 			</label>
-			<label for="confirm-password" class="col-span-2 flex flex-col">
+			<label for="confirm-password" class="md:col-span-2 flex flex-col">
 				Confirm Password
 				<input
 					type="password"
@@ -80,10 +80,10 @@
 				/>
 			</label>
 
-			<button type="submit" class="col-span-2 h-12 rounded-xl bg-primary">Submit</button>
-			<div class="col-span-2">
+			<button type="submit" class="md:col-span-2 h-12 rounded-xl bg-primary">Submit</button>
+			<div class="md:col-span-2">
 				<span>Already have an account? </span>
-				<a href="/login" class="col-span-2 text-center text-accent hover:underline"> Log In </a>
+				<a href="/login" class="md:col-span-2 text-center text-accent hover:underline"> Log In </a>
 			</div>
 		</div>
 	</form>

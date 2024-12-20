@@ -13,8 +13,8 @@ export default {
 				accent: 'var(--accent)',
 			},
 			gridTemplateColumns: {
-				guildView: '5rem 1fr',
-				channelView: '10rem 1fr'
+				guildView: '15rem 1fr',
+				guildChannelView: '5rem 10rem'
 			}
 		}
 	},
