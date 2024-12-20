@@ -28,6 +28,7 @@ declare global {
 
 	interface Message {
 		id: number,
+		author: string,
 		author_id: number,
 		content: string,
 		attachments: string[],

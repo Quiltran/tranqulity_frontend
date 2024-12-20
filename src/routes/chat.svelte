@@ -23,6 +23,7 @@
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild | null>(null);
+	let selectedChannel = $state<Channel | null>(null);
 
 	function failCallback() {
 		error = {
@@ -115,7 +116,7 @@
 			<div class="flex w-full flex-col gap-3 border-r border-accent bg-background md:flex p-2">
 				<span>Channels</span>
 				{#each selectedGuild?.channels || [] as channel}
-					<span>{channel.name}</span>
+					<button onclick={() => selectedChannel = channel}>{channel.name}</button>
 				{:else}
 					<span>This guild doesn't have a channel yet.</span>
 				{/each}
@@ -124,6 +125,6 @@
 				>
 			</div>
 		</div>
-		<GuildContent channels={selectedGuild?.channels || []} {sendMessageCallback} />
+		<GuildContent {auth} guildId={selectedGuild?.id || -1} channelId={selectedChannel?.id || -1} {sendMessageCallback} />
 	</div>
 {/if}
