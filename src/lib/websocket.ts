@@ -33,7 +33,6 @@ export class WebSocketClient {
 
         this.ws = new WebSocket(`${this.baseUrl}/${this.userId}/${this.token}`);
 
-
         this.ws.onopen = () => {
             this.reconnectAttempts = 0;
             this.reconnectCallback();
@@ -44,14 +43,14 @@ export class WebSocketClient {
         }
 
         this.ws.onclose = (event) => {
-            // this.disconnectCallback();
+            this.disconnectCallback();
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
                 setTimeout(() => {
                     this.connect()
                 }, 1000 * this.reconnectAttempts);
             } else {
-                // this.failCallback();
+                this.failCallback();
             }
         };
 

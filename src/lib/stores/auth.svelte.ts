@@ -15,7 +15,7 @@ class AuthStore {
     constructor() {
         let auth = browser && localStorage.getItem('auth') || null;
         this.authState = auth && JSON.parse(auth) || null;
-   }
+    }
     login(username: string, password: string) {
         fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
             method: 'POST',
@@ -66,6 +66,35 @@ class AuthStore {
                 localStorage.setItem('auth', JSON.stringify(data));
                 goto('/login');
             });
+    }
+    refreshToken() {
+        let refresh_token = this.authState?.refresh_token;
+        console.log(this.authState?.refresh_token, this.authState?.token);
+        fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
+            method: 'POST',
+            headers: {
+				authorization: `Bearer ${this.authState?.token}`,
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                "refresh_token": refresh_token
+            })
+        })
+        .then((response) => {
+            if (!response.ok) {
+                console.error(response.status, response.statusText);
+                return Promise.reject("An error occurred while refreshing your token.");
+            }
+
+            return response.json();
+        })
+        .then((data) => {
+            this.authState = data as AuthState;
+            localStorage.setItem('auth', JSON.stringify(data));
+        })
+        .catch((error) => {
+            console.error(error)
+        });
     }
     logout() {
         localStorage.removeItem('auth');

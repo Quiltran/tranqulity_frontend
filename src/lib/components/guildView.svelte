@@ -10,7 +10,6 @@
 
 	let authState = authStore.authState;
 	let messages = $state<Message[]>([]);
-	$inspect(messages);
 
 	let message = $state<string>('');
 

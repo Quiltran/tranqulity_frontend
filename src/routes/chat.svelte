@@ -31,10 +31,7 @@
 		};
 	}
 	function disconnectCallback() {
-		error = {
-			message:
-				"You've lost connection to the server. Please wait while we try to re-establish a connection."
-		};
+		authStore.refreshToken();
 	}
 	function reconnectCallback() {
 		error = null;
