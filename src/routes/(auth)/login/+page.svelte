@@ -1,36 +1,11 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 	let username = $state('');
 	let password = $state('');
 
 	function login(e: SubmitEvent) {
 		e.preventDefault();
-		fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json'
-			},
-			body: JSON.stringify({
-				username: `${$state.snapshot(username)}`,
-				password: `${$state.snapshot(password)}`
-			})
-		})
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error('Unable to login.');
-				}
-
-				return response.json();
-			})
-			.then((body) => {
-				auth.setAuth(body);
-				goto('/');
-			})
-			.catch((error) => {
-				console.error(error);
-				alert('Unable to log you in at this time.');
-			});
+		authStore.login(username, password);
 	}
 </script>
 
@@ -40,7 +15,7 @@
 			<h1 class="text-xl font-bold">Login</h1>
 			<span class="md:col-span-2">Login to gain full access to Tranquility</span>
 		</div>
-		<div class="grid gap-5 grid-cols-1 md:grid-cols-2">
+		<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 			<label for="username" class="flex flex-col">
 				Username
 				<input
@@ -60,10 +35,12 @@
 				/>
 			</label>
 
-			<button type="submit" class="md:col-span-2 h-12 rounded-xl bg-primary">Submit</button>
+			<button type="submit" class="h-12 rounded-xl bg-primary md:col-span-2">Submit</button>
 			<div class="md:col-span-2">
 				<span>Don't have an account? </span>
-				<a href="/register" class="md:col-span-2 text-center text-accent hover:underline"> Sign Up </a>
+				<a href="/register" class="text-center text-accent hover:underline md:col-span-2">
+					Sign Up
+				</a>
 			</div>
 		</div>
 	</form>

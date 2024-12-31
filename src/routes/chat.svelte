@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { swipe, type SwipePointerEventDetail } from 'svelte-gestures';
 	import { isMobile } from '$lib/utils/detectDevice';
-	import type { ChatProps } from '$lib/props/chat';
 	import GuildContent from '$lib/components/guildView.svelte';
 	import { WebSocketClient } from '$lib/websocket';
 	import type { WebSocketClientProps } from '$lib/websocket';
+	import { authStore } from '$lib/stores/auth.svelte';
 
-	let { auth }: ChatProps = $props();
-
+	let authState = authStore.authState;
 	let onMobile = isMobile();
 	let direction = $state<SwipePointerEventDetail['direction'] | null>(null);
 
@@ -18,8 +17,8 @@
 		direction = event.detail.direction;
 	}
 
-	const websocketToken = $state.snapshot(auth.websocket_token);
-	const userId = $state.snapshot(auth.id);
+	const websocketToken = authState?.websocket_token;
+	const userId = authState?.id;
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild | null>(null);
@@ -62,7 +61,7 @@
 	$effect(() => {
 		fetch(`${import.meta.env.VITE_API_URL}/api/guild/`, {
 			headers: {
-				authorization: `Bearer ${auth.token}`
+				authorization: `Bearer ${authState?.token}`
 			}
 		})
 			.then((response) => {
@@ -125,6 +124,6 @@
 				>
 			</div>
 		</div>
-		<GuildContent {auth} guildId={selectedGuild?.id || -1} channelId={selectedChannel?.id || -1} {sendMessageCallback} />
+		<GuildContent guildId={selectedGuild?.id || -1} channelId={selectedChannel?.id || -1} {sendMessageCallback} />
 	</div>
 {/if}

@@ -1,5 +1,5 @@
 import { browser } from "$app/environment";
-import { writable } from "svelte/store";
+import { goto } from "$app/navigation";
 
 export interface AuthState {
     id: number | null,
@@ -9,54 +9,71 @@ export interface AuthState {
     websocket_token: string | null,
 }
 
-// class AuthStore {
-//     value = $state<AuthState>({ token: null, user: null })
-//     #store
-//     constructor(token: AuthState['token'], user: AuthState['user']) {
-//         this.value = { token: token, user: user };
-//         this.#store = writable<AuthState>();
-//         this.#store.subscribe(v => this.value = v);
-//     }
+class AuthStore {
+    authState = $state<AuthState | null>(null);
 
-//     clear() {
-//         this.#store.set({ token: null, user: null });
-//     }
+    constructor() {
+        let auth = browser && localStorage.getItem('auth') || null;
+        this.authState = auth && JSON.parse(auth) || null;
+   }
+    login(username: string, password: string) {
+        fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                username, password
+            })
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    console.error(response.status, response.statusText);
+                    return Promise.reject("An error occurred while logging in.")
+                }
 
-//     set(state: AuthState) {
-//         this.#store.set(state);
-//     }
-// }
-
-// const authStore = new AuthStore(null, null);
-// export { authStore };
-
-function createAuthStore() {
-    const initialState: AuthState = browser ? JSON.parse(localStorage.getItem('auth') || '{"token": null, "user": null}') : { token: null, user: null };
-
-    const { subscribe, set } = writable<AuthState>(initialState);
-
-    return {
-        subscribe,
-        setAuth: (user: AuthState) => {
-            set(user);
-
-            if (browser) {
-                localStorage.setItem('auth', JSON.stringify(user))
-            }
-        },
-        clear: () => {
-            set({
-                id: null,
-                username: null,
-                refresh_token: null,
-                token: null,
-                websocket_token: null
+                return response.json();
+            })
+            .then((data) => {
+                this.authState = data as AuthState;
+                localStorage.setItem('auth', JSON.stringify(data));
+                goto('/');
             });
-            if (browser) {
-                localStorage.removeItem('auth');
-            }
-        }
-    };
+    }
+    register(username: string, email: string, password: string, confirmPassword: string) {
+        fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: `${$state.snapshot(username)}`,
+                email: `${$state.snapshot(email)}`,
+                password: `${$state.snapshot(password)}`,
+                confirm_password: `${$state.snapshot(confirmPassword)}`
+            })
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    console.error(response.status, response.statusText);
+                    return Promise.reject("An error occurred while registering you.");
+                }
+
+                return response.json()
+            })
+            .then((data) => {
+                this.authState = data as AuthState;
+                localStorage.setItem('auth', JSON.stringify(data));
+                goto('/');
+            });
+    }
+    logout() {
+        localStorage.removeItem('auth');
+        this.authState = null;
+    }
+    isAuthenticated() {
+        return Boolean(this.authState);
+    }
 }
 
-export const auth = createAuthStore();
+export const authStore = new AuthStore();

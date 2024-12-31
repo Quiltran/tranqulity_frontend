@@ -1,43 +1,19 @@
 <script lang="ts">
-	import { auth } from '$lib/stores/auth.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
+
 	let username = $state('');
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 
-	function login(e: SubmitEvent) {
+	function register(e: SubmitEvent) {
 		e.preventDefault();
-		fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json'
-			},
-			body: JSON.stringify({
-				username: `${$state.snapshot(username)}`,
-				email: `${$state.snapshot(email)}`,
-				password: `${$state.snapshot(password)}`,
-				confirm_password: `${$state.snapshot(confirmPassword)}`
-			})
-		})
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error('Unable to register user.');
-				}
-				return response.json();
-			})
-			.then((data) => {
-				auth.setAuth(data);
-				window.location.href = '/';
-			})
-			.catch((error) => {
-				console.error(error);
-				alert('An error occurred while registering user.');
-			});
+		authStore.register(username, email, password, confirmPassword);
 	}
 </script>
 
 <div class="flex w-full items-center justify-center">
-	<form class="rounded-xl border-2 border-accent p-6" onsubmit={(e) => login(e)}>
+	<form class="rounded-xl border-2 border-accent p-6" onsubmit={(e) => register(e)}>
 		<div class="flex flex-col gap-4 pb-10">
 			<h1 class="text-xl font-bold">Register</h1>
 			<span class="md:col-span-2">Register to gain full access to Tranquility</span>
@@ -61,7 +37,7 @@
 					class="h-12 rounded-xl border border-accent bg-background p-2"
 				/>
 			</label>
-			<label for="password" class="md:col-span-2 flex flex-col">
+			<label for="password" class="flex flex-col md:col-span-2">
 				Password
 				<input
 					type="password"
@@ -70,7 +46,7 @@
 					class="h-12 rounded-xl border border-accent bg-background p-2"
 				/>
 			</label>
-			<label for="confirm-password" class="md:col-span-2 flex flex-col">
+			<label for="confirm-password" class="flex flex-col md:col-span-2">
 				Confirm Password
 				<input
 					type="password"
@@ -80,10 +56,10 @@
 				/>
 			</label>
 
-			<button type="submit" class="md:col-span-2 h-12 rounded-xl bg-primary">Submit</button>
+			<button type="submit" class="h-12 rounded-xl bg-primary md:col-span-2">Submit</button>
 			<div class="md:col-span-2">
 				<span>Already have an account? </span>
-				<a href="/login" class="md:col-span-2 text-center text-accent hover:underline"> Log In </a>
+				<a href="/login" class="text-center text-accent hover:underline md:col-span-2"> Log In </a>
 			</div>
 		</div>
 	</form>

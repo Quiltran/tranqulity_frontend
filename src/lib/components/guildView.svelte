@@ -1,14 +1,14 @@
 <script lang="ts">
+	import { authStore } from "$lib/stores/auth.svelte";
+
 	interface Props {
 		guildId: number;
 		channelId: number;
-		auth: AuthState;
 		sendMessageCallback: () => void;
 	}
-	import type { AuthState } from '$lib/stores/auth.svelte';
+	let { guildId, channelId, sendMessageCallback }: Props = $props();
 
-	let { guildId, channelId, auth, sendMessageCallback }: Props = $props();
-
+	let authState = authStore.authState;
 	let messages = $state<Message[]>([]);
 	$inspect(messages);
 
@@ -30,18 +30,18 @@
 			`${import.meta.env.VITE_API_URL}/api/guild/${guildId}/channel/${channelId}/message/page/${pageNumber}`,
 			{
 				headers: {
-					authorization: `Bearer ${auth.token}`
+					authorization: `Bearer ${authState?.token}`
 				}
 			}
 		)
-		.then((response) => {
-			if (!response.ok) {
-				throw Error("Invalid response from message request.");
-			}
+			.then((response) => {
+				if (!response.ok) {
+					throw Error('Invalid response from message request.');
+				}
 
-			return response.json()
-		})
-		.then((data) => messages = data as Message[]);
+				return response.json();
+			})
+			.then((data) => (messages = data as Message[]));
 	});
 </script>
 
