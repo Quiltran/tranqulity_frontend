@@ -64,7 +64,7 @@ class AuthStore {
             .then((data) => {
                 this.authState = data as AuthState;
                 localStorage.setItem('auth', JSON.stringify(data));
-                goto('/');
+                goto('/login');
             });
     }
     logout() {
