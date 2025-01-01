@@ -5,7 +5,7 @@
 	interface Props {
 		guildId: number;
 		channelId: number;
-		sendMessageCallback: () => void;
+		sendMessageCallback: (message: string) => void;
 	}
 	let { guildId, channelId, sendMessageCallback }: Props = $props();
 
@@ -51,8 +51,8 @@
 			id="text"
 			bind:value={message}
 		></textarea>
-		<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessageCallback()}
-			>Send</button
-		>
+		<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessageCallback(message)}>
+			Send
+		</button>
 	</div>
 </div>

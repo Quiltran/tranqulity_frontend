@@ -3,11 +3,9 @@
 	import { isMobile } from '$lib/utils/detectDevice';
 	import GuildContent from '$lib/components/guildView.svelte';
 	import { WebSocketClient } from '$lib/websocket';
-	import type { WebSocketClientProps } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { getGuilds } from '$lib/requests/guilds';
 
-	let authState = authStore.authState;
 	let onMobile = isMobile();
 	let direction = $state<SwipePointerEventDetail['direction'] | null>(null);
 
@@ -29,33 +27,39 @@
 				'Failed to reconnect to the websocket. Please log out and back in to re-establish your connection.'
 		};
 	}
-	function disconnectCallback() {
-		authStore.refreshToken();
+	async function disconnectCallback() {
+		console.log('refreshing auth');
+		await authStore.refreshToken();
+		if (!authStore.authState?.websocket_token) {
+			return Promise.reject("Unable to get new websocket token.");
+		}
+		return authStore.authState?.websocket_token;
 	}
 	function reconnectCallback() {
 		error = null;
 	}
 
-	if (!authState?.websocket_token) {
+	if (!authStore.authState?.websocket_token) {
 		error = { message: 'No token was provided for auth.' };
 	}
-	if (!authState?.id) {
+	if (!authStore.authState?.id) {
 		error = { message: 'User ID was not provided for auth.' };
 	}
-	let wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
-		userId: authState?.id?.toString(),
-		token: authState?.websocket_token,
-		failCallback,
-		disconnectCallback,
-		reconnectCallback
-	} as WebSocketClientProps);
+	let wsClient = new WebSocketClient(
+		`${import.meta.env.VITE_API_URL}/ws`,
+		{ failCallback, disconnectCallback, reconnectCallback }
+	);
+	wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
 
-	function sendMessageCallback() {
-		wsClient.sendMessage({});
+	function sendMessageCallback(message: string) {
+		if (!selectedChannel?.id) {
+			return;
+		}
+		wsClient.sendMessage(selectedChannel?.id, message, []);
 	}
 
 	$effect(() => {
-		getGuilds(authState?.token || '').then((g) => (guilds = g));
+		getGuilds(authStore.authState?.token || '').then((g) => (guilds = g));
 
 		return () => {
 			wsClient?.disconnect();
@@ -99,9 +103,9 @@
 				{:else}
 					<span>This guild doesn't have a channel yet.</span>
 				{/each}
-				<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent"
-					>Create a Channel</button
-				>
+				<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent">
+					Create a Channel
+				</button>
 			</div>
 		</div>
 		<GuildContent

@@ -67,10 +67,9 @@ class AuthStore {
                 goto('/login');
             });
     }
-    refreshToken() {
+    async refreshToken() {
         let refresh_token = this.authState?.refresh_token;
-        console.log(this.authState?.refresh_token, this.authState?.token);
-        fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
+        let response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
             method: 'POST',
             headers: {
 				authorization: `Bearer ${this.authState?.token}`,
@@ -79,22 +78,16 @@ class AuthStore {
             body: JSON.stringify({
                 "refresh_token": refresh_token
             })
-        })
-        .then((response) => {
-            if (!response.ok) {
+        });
+
+        if (!response.ok) {
                 console.error(response.status, response.statusText);
                 return Promise.reject("An error occurred while refreshing your token.");
-            }
-
-            return response.json();
-        })
-        .then((data) => {
-            this.authState = data as AuthState;
-            localStorage.setItem('auth', JSON.stringify(data));
-        })
-        .catch((error) => {
-            console.error(error)
-        });
+        }
+        let data = await response.json() as AuthState;
+        this.authState = data;
+        console.log("Successfully refreshed auth:", data);
+        localStorage.setItem('auth', JSON.stringify(data));
     }
     logout() {
         localStorage.removeItem('auth');
