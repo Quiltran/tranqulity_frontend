@@ -6,21 +6,24 @@
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { getGuilds } from '$lib/requests/guilds';
 
+	//#region Mobile Swipe
 	let onMobile = isMobile();
 	let direction = $state<SwipePointerEventDetail['direction'] | null>(null);
 
-	function handler(event: CustomEvent<SwipePointerEventDetail>) {
+	function onswipeHandler(event: CustomEvent<SwipePointerEventDetail>) {
 		if (!onMobile) {
 			return;
 		}
 		direction = event.detail.direction;
 	}
+	// #endregion
 
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild | null>(null);
 	let selectedChannel = $state<Channel | null>(null);
 
+	//#region websocket callbacks
 	function failCallback() {
 		error = {
 			message:
@@ -38,7 +41,9 @@
 	function reconnectCallback() {
 		error = null;
 	}
+	//#endregion
 
+	//#region initialize websocket
 	if (!authStore.authState?.websocket_token) {
 		error = { message: 'No token was provided for auth.' };
 	}
@@ -51,6 +56,7 @@
 		reconnectCallback
 	});
 	wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
+	//#endregion
 
 	function sendMessage(message: string) {
 		if (!selectedChannel?.id) {
@@ -110,7 +116,7 @@
 	<div
 		class="grid h-full flex-1 gap-2 px-2 md:grid-cols-guildView"
 		use:swipe={{ timeframe: 300, minSwipeDistance: 100, touchAction: 'pan-y' }}
-		onswipe={handler}
+		onswipe={onswipeHandler}
 	>
 		<div
 			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
