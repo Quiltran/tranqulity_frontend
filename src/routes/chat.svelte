@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { swipe, type SwipePointerEventDetail } from 'svelte-gestures';
 	import { isMobile } from '$lib/utils/detectDevice';
-	import GuildContent from '$lib/components/guildView.svelte';
+	import { getMessages } from '$lib/requests/channels';
 	import { WebSocketClient } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { getGuilds } from '$lib/requests/guilds';
@@ -31,7 +31,7 @@
 		console.log('refreshing auth');
 		await authStore.refreshToken();
 		if (!authStore.authState?.websocket_token) {
-			return Promise.reject("Unable to get new websocket token.");
+			return Promise.reject('Unable to get new websocket token.');
 		}
 		return authStore.authState?.websocket_token;
 	}
@@ -45,18 +45,55 @@
 	if (!authStore.authState?.id) {
 		error = { message: 'User ID was not provided for auth.' };
 	}
-	let wsClient = new WebSocketClient(
-		`${import.meta.env.VITE_API_URL}/ws`,
-		{ failCallback, disconnectCallback, reconnectCallback }
-	);
+	let wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
+		failCallback,
+		disconnectCallback,
+		reconnectCallback
+	});
 	wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
 
-	function sendMessageCallback(message: string) {
+	function sendMessage(message: string) {
 		if (!selectedChannel?.id) {
 			return;
 		}
 		wsClient.sendMessage(selectedChannel?.id, message, []);
+		messages.push({
+			attachments: [],
+			author: authStore.authState?.username || '',
+			author_id: authStore.authState?.id || -1,
+			content: message,
+			created_date: new Date(),
+			id: -1,
+			updated_date: new Date()
+		} satisfies Message);
+		message = '';
 	}
+	let messages = $state<Message[]>([]);
+
+	let message = $state<string>('');
+
+	let messageBox = $state<HTMLTextAreaElement>();
+	let pageNumber = $state(0);
+
+	$effect(() => {
+		if (!messageBox) {
+			return;
+		}
+		messageBox.addEventListener('input', () => {
+			messageBox!.style.height = 'auto';
+			messageBox!.style.height = messageBox!.scrollHeight + 'px';
+		});
+
+		if (!selectedGuild?.id || !selectedChannel?.id) {
+			return;
+		}
+		getMessages(
+			selectedGuild?.id.toString(),
+			selectedChannel.id.toString(),
+			pageNumber,
+			authStore.authState?.token || ''
+		).then((m) => (messages = m));
+	});
 
 	$effect(() => {
 		getGuilds(authStore.authState?.token || '').then((g) => (guilds = g));
@@ -108,10 +145,29 @@
 				</button>
 			</div>
 		</div>
-		<GuildContent
-			guildId={selectedGuild?.id || -1}
-			channelId={selectedChannel?.id || -1}
-			{sendMessageCallback}
-		/>
+		<div class="flex flex-col justify-end px-4">
+			<div class="px-2">
+				{#each messages as message}
+					<div>
+						<span>{message.author}</span>:
+						<span>{message.content}</span>
+					</div>
+				{:else}
+					<span>No messages have been posted in this channel yet.</span>
+				{/each}
+			</div>
+			<div class="flex items-end gap-2 py-4">
+				<textarea
+					class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
+					placeholder="What do you want to say?"
+					bind:this={messageBox}
+					id="text"
+					bind:value={message}
+				></textarea>
+				<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage(message)}>
+					Send
+				</button>
+			</div>
+		</div>
 	</div>
 {/if}
