@@ -5,6 +5,7 @@
 	import { WebSocketClient } from '$lib/websocket';
 	import type { WebSocketClientProps } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { getGuilds } from '$lib/requests/guilds';
 
 	let authState = authStore.authState;
 	let onMobile = isMobile();
@@ -17,8 +18,6 @@
 		direction = event.detail.direction;
 	}
 
-	const websocketToken = authState?.websocket_token;
-	const userId = authState?.id;
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild | null>(null);
@@ -37,15 +36,15 @@
 		error = null;
 	}
 
-	if (!websocketToken) {
+	if (!authState?.websocket_token) {
 		error = { message: 'No token was provided for auth.' };
 	}
-	if (!userId) {
+	if (!authState?.id) {
 		error = { message: 'User ID was not provided for auth.' };
 	}
 	let wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
-		userId: userId?.toString(),
-		token: websocketToken,
+		userId: authState?.id?.toString(),
+		token: authState?.websocket_token,
 		failCallback,
 		disconnectCallback,
 		reconnectCallback
@@ -56,23 +55,7 @@
 	}
 
 	$effect(() => {
-		fetch(`${import.meta.env.VITE_API_URL}/api/guild/`, {
-			headers: {
-				authorization: `Bearer ${authState?.token}`
-			}
-		})
-			.then((response) => {
-				if (response.ok) {
-					return response.json();
-				}
-			})
-			.then((data) => {
-				guilds = data as Guild[];
-			})
-			.catch((err) => {
-				alert('An error occurred while collecting guilds.');
-				console.error(err);
-			});
+		getGuilds(authState?.token || '').then((g) => (guilds = g));
 
 		return () => {
 			wsClient?.disconnect();
@@ -89,7 +72,7 @@
 		onswipe={handler}
 	>
 		<div
-			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid-cols-guildChannelView grid h-full px-2`}
+			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
 		>
 			<div
 				class={`flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background pr-2`}
@@ -109,10 +92,10 @@
 					</button>
 				{/each}
 			</div>
-			<div class="flex w-full flex-col gap-3 border-r border-accent bg-background md:flex p-2">
+			<div class="flex w-full flex-col gap-3 border-r border-accent bg-background p-2 md:flex">
 				<span>Channels</span>
 				{#each selectedGuild?.channels || [] as channel}
-					<button onclick={() => selectedChannel = channel}>{channel.name}</button>
+					<button onclick={() => (selectedChannel = channel)}>{channel.name}</button>
 				{:else}
 					<span>This guild doesn't have a channel yet.</span>
 				{/each}
@@ -121,6 +104,10 @@
 				>
 			</div>
 		</div>
-		<GuildContent guildId={selectedGuild?.id || -1} channelId={selectedChannel?.id || -1} {sendMessageCallback} />
+		<GuildContent
+			guildId={selectedGuild?.id || -1}
+			channelId={selectedChannel?.id || -1}
+			{sendMessageCallback}
+		/>
 	</div>
 {/if}

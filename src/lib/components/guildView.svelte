@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { authStore } from "$lib/stores/auth.svelte";
+	import { getMessages } from '$lib/requests/channels';
+	import { authStore } from '$lib/stores/auth.svelte';
 
 	interface Props {
 		guildId: number;
@@ -25,22 +26,9 @@
 			messageBox.style.height = messageBox.scrollHeight + 'px';
 		});
 
-		fetch(
-			`${import.meta.env.VITE_API_URL}/api/guild/${guildId}/channel/${channelId}/message/page/${pageNumber}`,
-			{
-				headers: {
-					authorization: `Bearer ${authState?.token}`
-				}
-			}
-		)
-			.then((response) => {
-				if (!response.ok) {
-					throw Error('Invalid response from message request.');
-				}
-
-				return response.json();
-			})
-			.then((data) => (messages = data as Message[]));
+		getMessages(guildId.toString(), channelId.toString(), pageNumber, authState?.token || '').then(
+			(m) => (messages = m)
+		);
 	});
 </script>
 
