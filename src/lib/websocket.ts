@@ -28,7 +28,6 @@ export class WebSocketClient {
     }
 
     async connect(userId: number, token: string) {
-        console.log("Connecting with", userId, token);
         if (this.ws) {
             this.ws.close()
         }
@@ -40,7 +39,6 @@ export class WebSocketClient {
 
             this.pingTimeout = setInterval(() => {
                 this.ws?.send(JSON.stringify({"type": "Ping"}))
-                console.log("PING")
             }, 5000);
         }
 
@@ -53,7 +51,6 @@ export class WebSocketClient {
                 let newToken = '';
                 try {
                     newToken = await this.disconnectCallback();
-                    console.log("setting config token:", newToken)
                 }
                 catch (err) {
                     alert(err);
@@ -70,7 +67,6 @@ export class WebSocketClient {
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             this.messageReceivedCallback(data);
-            console.log(data);
         };
     }
 
