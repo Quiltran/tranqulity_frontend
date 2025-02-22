@@ -41,37 +41,44 @@
 	function reconnectCallback() {
 		error = null;
 	}
+	function messageReceivedCallback(data: WebsocketMessage) {
+		if (data.type == "message") {
+			messages.push(data.data)
+		}
+	}
 	//#endregion
 
+	let id = 0;
+
 	//#region initialize websocket
-	if (!authStore.authState?.websocket_token) {
-		error = { message: 'No token was provided for auth.' };
-	}
-	if (!authStore.authState?.id) {
-		error = { message: 'User ID was not provided for auth.' };
-	}
-	let wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
-		failCallback,
-		disconnectCallback,
-		reconnectCallback
+	let wsClient: WebSocketClient;
+	$effect(() => {
+		if (!authStore.authState?.websocket_token || !authStore.authState?.id) {
+			error = { message: 'Auth is not ready for websocket connection.' };
+			return;
+		}
+			wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
+				failCallback,
+				disconnectCallback,
+				reconnectCallback,
+				messageReceivedCallback,
+			});
+			wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
+		console.log("Starting connection", id)
+		id += 1;
+
+		return () => {
+			wsClient?.disconnect();
+		};
 	});
-	wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
 	//#endregion
+
 
 	function sendMessage(message: string) {
 		if (!selectedChannel?.id) {
 			return;
 		}
 		wsClient.sendMessage(selectedChannel?.id, message, []);
-		messages.push({
-			attachments: [],
-			author: authStore.authState?.username || '',
-			author_id: authStore.authState?.id || -1,
-			content: message,
-			created_date: new Date(),
-			id: -1,
-			updated_date: new Date()
-		} satisfies Message);
 		message = '';
 	}
 	let messages = $state<Message[]>([]);
@@ -103,10 +110,6 @@
 
 	$effect(() => {
 		getGuilds(authStore.authState?.token || '').then((g) => (guilds = g));
-
-		return () => {
-			wsClient?.disconnect();
-		};
 	});
 </script>
 

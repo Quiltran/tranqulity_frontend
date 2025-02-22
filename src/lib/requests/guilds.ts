@@ -1,5 +1,5 @@
 export async function getGuilds(token: string) {
-    let response = await fetch(`${import.meta.env.VITE_API_URL}/api/guild/`, {
+    let response = await fetch(`${import.meta.env.VITE_API_URL}/api/guild`, {
         headers: {
             authorization: `Bearer ${token}`
         }

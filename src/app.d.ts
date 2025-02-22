@@ -8,6 +8,11 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	interface WebsocketMessage {
+		type: string,
+		data: Message
+	}
 	interface Guild {
 		id: number;
 		name: string;
