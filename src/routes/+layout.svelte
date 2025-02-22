@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { guildStore } from '$lib/stores/guild.svelte';
 	import '../app.css';
 	let { children } = $props();
+
+	if (authStore.isAuthenticated()) {
+		guildStore.getGuilds(authStore?.authState?.token ?? "")
+	}
 </script>
 
 <div class="flex h-screen flex-col gap-2">

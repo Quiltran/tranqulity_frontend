@@ -4,7 +4,7 @@
 	import { getMessages } from '$lib/requests/channels';
 	import { WebSocketClient } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
-	import { getGuilds } from '$lib/requests/guilds';
+	import { guildStore } from '$lib/stores/guild.svelte';
 	import Plus from '$lib/svgs/plus.svelte';
 	import { goto } from '$app/navigation';
 
@@ -22,9 +22,9 @@
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
-	let guilds = $state<Guild[]>([]);
-	let selectedGuild = $state<Guild | null>(null);
-	let selectedChannel = $state<Channel | null>(null);
+	let guilds: Guild[] = $derived(guildStore.guildState.guilds);
+	let selectedGuild: Guild | null = $derived(guildStore.guildState.currentGuild);
+	let selectedChannel = $derived(guildStore.guildState.currentChannel);
 
 	//#region websocket callbacks
 	function failCallback() {
@@ -111,27 +111,26 @@
 	});
 
 	$effect(() => {
-		getGuilds(authStore.authState?.token || '').then((g) => {
-			guilds = g;
-		});
-	});
-	$effect(() => {
-		if (guilds.length == 0) {
+		if (guilds.length == 0 || !gid) {
 			return;
 		}
+
 		let searchGuild = guilds.find((g) => g.id == gid);
 		if (!searchGuild) {
 			goto('/');
 			return;
 		}
-		selectedGuild = searchGuild;
 
 		let searchChannel = searchGuild.channels?.find((c) => c.id == cid);
 		if (!searchChannel) {
 			goto(`/guild/${gid}`);
+			guildStore.setSelectedGuild(searchGuild, null);
 			return;
 		}
-		selectedChannel = searchChannel;
+
+		if (searchGuild?.id !== selectedGuild?.id || selectedChannel?.id !== searchChannel.id) {
+			guildStore.setSelectedGuild(searchGuild, searchChannel);
+		}
 	});
 </script>
 
