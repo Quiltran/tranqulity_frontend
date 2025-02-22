@@ -15,6 +15,9 @@ export default {
 			gridTemplateColumns: {
 				guildView: '15rem 1fr',
 				guildChannelView: '5rem 10rem'
+			},
+			borderRadius: {
+				all: '100%'
 			}
 		}
 	},

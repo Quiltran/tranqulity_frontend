@@ -130,7 +130,7 @@
 				<span>Guilds</span>
 				{#each guilds as guild}
 					<button
-						class="flex aspect-square w-full items-center justify-center rounded-full bg-primary transition-all duration-200 hover:rounded-lg"
+						class={`flex aspect-square w-full items-center justify-center ${selectedGuild?.id == guild.id && "rounded-xl" || "rounded-all"} bg-primary transition-all duration-150`}
 						onclick={() => {
 							selectedGuild = guild;
 						}}
