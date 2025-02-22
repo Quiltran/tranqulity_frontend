@@ -3,7 +3,6 @@
 	import { authStore } from '$lib/stores/auth.svelte';
 	import '../app.css';
 	let { children } = $props();
-
 </script>
 
 <div class="flex h-screen flex-col gap-2">
@@ -15,8 +14,10 @@
 			{#if authStore.authState?.id}
 				<button
 					class="flex items-center justify-center rounded-lg bg-primary px-2 py-1"
-					onclick={() => authStore.logout()}>Logout</button
+					onclick={() => authStore.logout()}
 				>
+					Logout
+				</button>
 				<span>{authStore.authState.username}</span>
 			{:else}
 				<button

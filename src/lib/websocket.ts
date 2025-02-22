@@ -12,7 +12,7 @@ export interface WebsocketCallbackProps {
 export class WebSocketClient {
     private ws: WebSocket | null = null;
     private reconnectAttempts = 0;
-    private maxReconnectAttempts = 5;
+    private maxReconnectAttempts = 1;
     private failCallback: () => void;
     private disconnectCallback: () => Promise<string>;
     private reconnectCallback: () => void;
@@ -29,6 +29,9 @@ export class WebSocketClient {
 
     async connect(userId: number, token: string) {
         console.log("Connecting with", userId, token);
+        if (this.ws) {
+            this.ws.close()
+        }
         this.ws = new WebSocket(`${this.baseUrl}/${userId}/${token}`);
 
         this.ws.onopen = () => {
@@ -58,9 +61,6 @@ export class WebSocketClient {
                     return;
                 }
                 this.reconnectAttempts++;
-                setTimeout(() => {
-                    this.connect(userId, newToken)
-                }, 1000 * this.reconnectAttempts);
             } else {
                 this.failCallback();
                 this.disconnect();
