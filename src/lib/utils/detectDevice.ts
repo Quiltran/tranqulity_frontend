@@ -1,4 +1,8 @@
+import { browser } from "$app/environment"
+
 export function isMobile() {
+    if (!browser) return false;
+
     if (navigator.userAgent.match(/Android/i)
         || navigator.userAgent.match(/webOS/i)
         || navigator.userAgent.match(/iPhone/i)

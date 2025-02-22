@@ -5,6 +5,8 @@
 	import { WebSocketClient } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { getGuilds } from '$lib/requests/guilds';
+	import Plus from '$lib/svgs/plus.svelte';
+	import { goto } from '$app/navigation';
 
 	//#region Mobile Swipe
 	let onMobile = isMobile();
@@ -18,6 +20,7 @@
 	}
 	// #endregion
 
+	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
 	let guilds = $state<Guild[]>([]);
 	let selectedGuild = $state<Guild | null>(null);
@@ -42,8 +45,8 @@
 		error = null;
 	}
 	function messageReceivedCallback(data: WebsocketMessage) {
-		if (data.type == "message") {
-			messages.push(data.data)
+		if (data.type == 'message') {
+			messages.push(data.data);
 		}
 	}
 	//#endregion
@@ -57,14 +60,14 @@
 			error = { message: 'Auth is not ready for websocket connection.' };
 			return;
 		}
-			wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
-				failCallback,
-				disconnectCallback,
-				reconnectCallback,
-				messageReceivedCallback,
-			});
-			wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
-		console.log("Starting connection", id)
+		wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
+			failCallback,
+			disconnectCallback,
+			reconnectCallback,
+			messageReceivedCallback
+		});
+		wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
+		console.log('Starting connection', id);
 		id += 1;
 
 		return () => {
@@ -72,7 +75,6 @@
 		};
 	});
 	//#endregion
-
 
 	function sendMessage(message: string) {
 		if (!selectedChannel?.id) {
@@ -109,7 +111,27 @@
 	});
 
 	$effect(() => {
-		getGuilds(authStore.authState?.token || '').then((g) => (guilds = g));
+		getGuilds(authStore.authState?.token || '').then((g) => {
+			guilds = g;
+		});
+	});
+	$effect(() => {
+		if (guilds.length == 0) {
+			return;
+		}
+		let searchGuild = guilds.find((g) => g.id == gid);
+		if (!searchGuild) {
+			goto('/');
+			return;
+		}
+		selectedGuild = searchGuild;
+
+		let searchChannel = searchGuild.channels?.find((c) => c.id == cid);
+		if (!searchChannel) {
+			goto(`/guild/${gid}`);
+			return;
+		}
+		selectedChannel = searchChannel;
 	});
 </script>
 
@@ -130,9 +152,9 @@
 				<span>Guilds</span>
 				{#each guilds as guild}
 					<button
-						class={`flex aspect-square w-full items-center justify-center ${selectedGuild?.id == guild.id && "rounded-xl" || "rounded-all"} bg-primary transition-all duration-150`}
+						class={`flex aspect-square w-full items-center justify-center ${(selectedGuild?.id == guild.id && 'rounded-xl') || 'rounded-all'} bg-primary transition-all duration-150`}
 						onclick={() => {
-							selectedGuild = guild;
+							goto(`/guild/${guild.id}`);
 						}}
 					>
 						{guild.name
@@ -141,42 +163,56 @@
 							.join('')}
 					</button>
 				{/each}
-			</div>
-			<div class="flex w-full flex-col gap-3 border-r border-accent bg-background p-2 md:flex">
-				<span>Channels</span>
-				{#each selectedGuild?.channels || [] as channel}
-					<button onclick={() => (selectedChannel = channel)}>{channel.name}</button>
-				{:else}
-					<span>This guild doesn't have a channel yet.</span>
-				{/each}
-				<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent">
-					Create a Channel
+				<button
+					class="rounded-all flex aspect-square w-full items-center justify-center bg-secondary transition-all duration-150"
+				>
+					<Plus />
 				</button>
 			</div>
+			{#if selectedGuild}
+				<div class="flex w-full flex-col gap-3 border-r border-accent bg-background p-2 md:flex">
+					<span>{selectedGuild.name}</span>
+					<span>Channels</span>
+					{#each selectedGuild?.channels || [] as channel}
+						<button
+							onclick={() => {
+								goto(`/guild/${gid}/channel/${channel.id}`);
+							}}>{channel.name}</button
+						>
+					{:else}
+						<span>This guild doesn't have a channel yet.</span>
+					{/each}
+					<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent">
+						Create a Channel
+					</button>
+				</div>
+			{/if}
 		</div>
-		<div class="flex flex-col justify-end px-4">
-			<div class="px-2">
-				{#each messages as message}
-					<div>
-						<span>{message.author}</span>:
-						<span>{message.content}</span>
-					</div>
-				{:else}
-					<span>No messages have been posted in this channel yet.</span>
-				{/each}
+		{#if selectedGuild && selectedChannel}
+			<div class="flex flex-col justify-end px-4">
+				<div class="px-2">
+					{#each messages as message}
+						<div>
+							<span>{message.author}</span>:
+							<span>{message.content}</span>
+						</div>
+					{:else}
+						<span>No messages have been posted in this channel yet.</span>
+					{/each}
+				</div>
+				<div class="flex items-end gap-2 py-4">
+					<textarea
+						class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
+						placeholder="What do you want to say?"
+						bind:this={messageBox}
+						id="text"
+						bind:value={message}
+					></textarea>
+					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage(message)}>
+						Send
+					</button>
+				</div>
 			</div>
-			<div class="flex items-end gap-2 py-4">
-				<textarea
-					class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
-					placeholder="What do you want to say?"
-					bind:this={messageBox}
-					id="text"
-					bind:value={message}
-				></textarea>
-				<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage(message)}>
-					Send
-				</button>
-			</div>
-		</div>
+		{/if}
 	</div>
 {/if}
