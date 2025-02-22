@@ -86,7 +86,6 @@ class AuthStore {
         }
         let data = await response.json() as AuthState;
         this.authState = data;
-        console.log("Successfully refreshed auth:", data);
         localStorage.setItem('auth', JSON.stringify(data));
     }
     logout() {
