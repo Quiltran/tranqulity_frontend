@@ -21,3 +21,7 @@
         --accent: #a8105c;
     }
 }
+
+html, body {
+    height: 100vh;
+}

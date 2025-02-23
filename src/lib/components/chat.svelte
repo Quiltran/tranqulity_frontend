@@ -197,23 +197,29 @@
 			{/if}
 		</div>
 		{#if selectedGuild && selectedChannel}
-			<div class="flex flex-col justify-end px-4">
-				<div class="px-2">
-					{#each messages as message, index}
-						<div class="flex flex-col">
-							{#if index === 0 || showTime(message, messages[index - 1])}
-								<div>
-									<span class="text-xl">{message.author}</span>
-									<span class="text-xs">
-										{new Date(message.created_date).toLocaleDateString('en-us')}
-									</span>
-								</div>
-							{/if}
-							<span class="pl-8">{message.content}</span>
+			<div class="flex h-full flex-col px-4">
+				<div class="relative flex flex-1">
+					<div class="absolute bottom-0 left-0 right-0 top-0">
+						<div class="flex flex-col-reverse h-full overflow-auto">
+							<div class="flex min-h-full flex-col items-stretch justify-end">
+								{#each messages as message, index}
+									<div class="flex flex-col">
+										{#if index === 0 || showTime(message, messages[index - 1])}
+											<div>
+												<span class="text-xl">{message.author}</span>
+												<span class="text-xs">
+													{new Date(message.created_date).toLocaleDateString('en-us')}
+												</span>
+											</div>
+										{/if}
+										<span class="pl-8">{message.content}</span>
+									</div>
+								{:else}
+									<span>No messages have been posted in this channel yet.</span>
+								{/each}
+							</div>
 						</div>
-					{:else}
-						<span>No messages have been posted in this channel yet.</span>
-					{/each}
+					</div>
 				</div>
 				<div class="flex items-end gap-2 py-4">
 					<textarea
