@@ -80,9 +80,7 @@
 		message = '';
 	}
 	let messages = $state<Message[]>([]);
-
 	let message = $state<string>('');
-
 	let messageBox = $state<HTMLTextAreaElement>();
 	let pageNumber = $state(0);
 
@@ -128,6 +126,21 @@
 			guildStore.setSelectedGuild(searchGuild, searchChannel);
 		}
 	});
+
+	function showTime(message1: Message, message2: Message) {
+		if (message1.author !== message2.author) {
+			return true;
+		}
+
+		if (
+			new Date(message1.updated_date).getTime() - new Date(message2.updated_date).getTime() >
+			2000 * 60
+		) {
+			return true;
+		}
+
+		return false;
+	}
 </script>
 
 {#if error}
@@ -159,13 +172,13 @@
 					</button>
 				{/each}
 				<button
-					class="rounded-all flex aspect-square w-full items-center justify-center bg-secondary transition-all duration-150"
+					class="flex aspect-square w-full items-center justify-center rounded-all bg-secondary transition-all duration-150"
 				>
 					<Plus />
 				</button>
 			</div>
 			{#if selectedGuild}
-				<div class="flex w-full flex-col gap-3 border-r border-accent bg-background p-2 md:flex">
+				<div class="flex w-full flex-col gap-3 border-r border-accent bg-background p-2">
 					<span>{selectedGuild.name}</span>
 					<span>Channels</span>
 					{#each selectedGuild?.channels || [] as channel}
@@ -186,10 +199,17 @@
 		{#if selectedGuild && selectedChannel}
 			<div class="flex flex-col justify-end px-4">
 				<div class="px-2">
-					{#each messages as message}
-						<div>
-							<span>{message.author}</span>:
-							<span>{message.content}</span>
+					{#each messages as message, index}
+						<div class="flex flex-col">
+							{#if index === 0 || showTime(message, messages[index - 1])}
+								<div>
+									<span class="text-xl">{message.author}</span>
+									<span class="text-xs">
+										{new Date(message.created_date).toLocaleDateString('en-us')}
+									</span>
+								</div>
+							{/if}
+							<span class="pl-8">{message.content}</span>
 						</div>
 					{:else}
 						<span>No messages have been posted in this channel yet.</span>
