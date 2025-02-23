@@ -7,6 +7,7 @@
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import Plus from '$lib/svgs/plus.svelte';
 	import { goto } from '$app/navigation';
+	import CreateChannel from './modals/createChannel.svelte';
 
 	//#region Mobile Swipe
 	let onMobile = isMobile();
@@ -101,7 +102,7 @@
 			selectedChannel.id.toString(),
 			pageNumber,
 			authStore.authState?.token || ''
-		).then((m) => (messages = m));
+		).then((m) => (messages = m ?? []));
 	});
 
 	$effect(() => {
@@ -141,6 +142,8 @@
 
 		return false;
 	}
+
+	let showCreateChannel = $state(false);
 </script>
 
 {#if error}
@@ -151,6 +154,9 @@
 		use:swipe={{ timeframe: 300, minSwipeDistance: 100, touchAction: 'pan-y' }}
 		onswipe={onswipeHandler}
 	>
+		{#if showCreateChannel}
+			<CreateChannel closeCallback={() => (showCreateChannel = false)} />
+		{/if}
 		<div
 			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
 		>
@@ -190,7 +196,7 @@
 					{:else}
 						<span>This guild doesn't have a channel yet.</span>
 					{/each}
-					<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent">
+					<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent" onclick={() => showCreateChannel = true}>
 						Create a Channel
 					</button>
 				</div>
@@ -200,7 +206,7 @@
 			<div class="flex h-full flex-col px-4">
 				<div class="relative flex flex-1">
 					<div class="absolute bottom-0 left-0 right-0 top-0">
-						<div class="flex flex-col-reverse h-full overflow-auto">
+						<div class="flex h-full flex-col-reverse overflow-auto">
 							<div class="flex min-h-full flex-col items-stretch justify-end">
 								{#each messages as message, index}
 									<div class="flex flex-col">
