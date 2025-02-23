@@ -14,7 +14,6 @@ class GuildStore {
     constructor() { }
 
     async getGuilds(token: string) {
-        console.log('fetching guilds')
         let response = await fetch(`${import.meta.env.VITE_API_URL}/api/guild`, {
             headers: {
                 authorization: `Bearer ${token}`
@@ -29,7 +28,6 @@ class GuildStore {
             ...this.guildState,
             guilds: data,
         };
-        console.log(this.guildState)
     }
 
     setSelectedGuild(guild: Guild, channel: Channel | null) {
