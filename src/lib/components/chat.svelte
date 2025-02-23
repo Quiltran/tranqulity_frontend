@@ -107,6 +107,7 @@
 
 	$effect(() => {
 		if (guilds.length == 0 || !gid) {
+			goto('/');
 			return;
 		}
 
