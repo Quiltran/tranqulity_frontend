@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/stores/auth.svelte';
-	import Chat from './chat.svelte';
+	import Chat from '$lib/components/chat.svelte';
 	import Home from './home.svelte';
 </script>
 
