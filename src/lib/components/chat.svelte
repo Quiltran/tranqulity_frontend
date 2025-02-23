@@ -51,8 +51,6 @@
 	}
 	//#endregion
 
-	let id = 0;
-
 	//#region initialize websocket
 	let wsClient: WebSocketClient;
 	$effect(() => {
@@ -67,8 +65,6 @@
 			messageReceivedCallback
 		});
 		wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
-		console.log('Starting connection', id);
-		id += 1;
 
 		return () => {
 			wsClient?.disconnect();
