@@ -8,6 +8,7 @@
 	import Plus from '$lib/svgs/plus.svelte';
 	import { goto } from '$app/navigation';
 	import CreateChannel from './modals/createChannel.svelte';
+	import CreateGuild from './modals/createGuild.svelte';
 
 	//#region Mobile Swipe
 	let onMobile = isMobile();
@@ -106,7 +107,8 @@
 	});
 
 	$effect(() => {
-		if (guilds.length == 0 || !gid) {
+		if (guilds.length == 0) return;
+		if (!gid) {
 			goto('/');
 			return;
 		}
@@ -145,6 +147,7 @@
 	}
 
 	let showCreateChannel = $state(false);
+	let showCreateGuild = $state(false);
 </script>
 
 {#if error}
@@ -157,6 +160,9 @@
 	>
 		{#if showCreateChannel}
 			<CreateChannel closeCallback={() => (showCreateChannel = false)} />
+		{/if}
+		{#if showCreateGuild}
+			<CreateGuild closeCallback={() => (showCreateGuild = false)} />
 		{/if}
 		<div
 			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
@@ -180,6 +186,7 @@
 				{/each}
 				<button
 					class="flex aspect-square w-full items-center justify-center rounded-all bg-secondary transition-all duration-150"
+					onclick={() => (showCreateGuild = true)}
 				>
 					<Plus />
 				</button>

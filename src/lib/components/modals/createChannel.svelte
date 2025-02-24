@@ -21,6 +21,7 @@
 				} else {
 					guildStore.guildState.currentGuild?.channels.push(channel);
 				}
+				closeCallback();
 			})
 			.catch((err) => {
 				alert('An error occurred while creating your channel.');
