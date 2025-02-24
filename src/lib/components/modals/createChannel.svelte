@@ -16,7 +16,11 @@
 	function submitNewChannel() {
 		createChannel(selectedGuild?.id ?? -1, channelName, authStore.authState?.token ?? '')
 			.then((channel) => {
-				guildStore.guildState.currentGuild?.channels.push(channel);
+				if (!guildStore.guildState.currentGuild!.channels) {
+					guildStore.guildState.currentGuild!.channels = [channel];
+				} else {
+					guildStore.guildState.currentGuild?.channels.push(channel);
+				}
 			})
 			.catch((err) => {
 				alert('An error occurred while creating your channel.');

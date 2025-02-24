@@ -5,9 +5,13 @@
 	import '../app.css';
 	let { children } = $props();
 
-	if (authStore.isAuthenticated()) {
-		guildStore.getGuilds(authStore?.authState?.token ?? "")
-	}
+	let authenticated = $derived(authStore.isAuthenticated());
+
+	$effect(() => {
+		if (authenticated) {
+			guildStore.getGuilds(authStore?.authState?.token ?? '');
+		}
+	});
 </script>
 
 <div class="flex h-screen flex-col gap-2">
