@@ -13,7 +13,7 @@ export default {
 				accent: 'var(--accent)',
 			},
 			gridTemplateColumns: {
-				guildView: '15rem 1fr',
+				guildView: '15rem 1fr 8rem',
 				guildChannelView: '5rem 10rem'
 			},
 			borderRadius: {

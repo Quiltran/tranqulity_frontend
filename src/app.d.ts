@@ -19,6 +19,7 @@ declare global {
 		description: string;
 		owner_id: number;
 		channels: Channel[];
+		members: Member[];
 		created_date: Date;
 		updated_date: Date;
 	}
@@ -39,6 +40,11 @@ declare global {
 		attachments: string[],
 		created_date: Date,
 		updated_date: Date,
+	}
+
+	interface Member {
+		id: number,
+		username: string,
 	}
 }
 

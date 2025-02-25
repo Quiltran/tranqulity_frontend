@@ -204,7 +204,10 @@
 					{:else}
 						<span>This guild doesn't have a channel yet.</span>
 					{/each}
-					<button class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent" onclick={() => showCreateChannel = true}>
+					<button
+						class="aspect-video w-full rounded-2xl bg-gradient-to-br from-primary to-accent"
+						onclick={() => (showCreateChannel = true)}
+					>
 						Create a Channel
 					</button>
 				</div>
@@ -247,6 +250,12 @@
 						Send
 					</button>
 				</div>
+			</div>
+			<div class="border-l border-accent flex flex-col gap-3 items-center">
+				<span class="font-bold text-lg">Members</span>
+				{#each selectedGuild.members ?? [] as member}
+					<span>{member.username}</span>
+				{/each}
 			</div>
 		{/if}
 	</div>
