@@ -9,6 +9,7 @@
 	import { goto } from '$app/navigation';
 	import CreateChannel from './modals/createChannel.svelte';
 	import CreateGuild from './modals/createGuild.svelte';
+	import CreateMember from './modals/createMember.svelte';
 
 	//#region Mobile Swipe
 	let onMobile = isMobile();
@@ -148,6 +149,7 @@
 
 	let showCreateChannel = $state(false);
 	let showCreateGuild = $state(false);
+	let showAddMember = $state(false);
 </script>
 
 {#if error}
@@ -163,6 +165,9 @@
 		{/if}
 		{#if showCreateGuild}
 			<CreateGuild closeCallback={() => (showCreateGuild = false)} />
+		{/if}
+		{#if showAddMember}
+			<CreateMember closeCallback={() => (showAddMember = false)} />
 		{/if}
 		<div
 			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
@@ -251,11 +256,17 @@
 					</button>
 				</div>
 			</div>
-			<div class="border-l border-accent flex flex-col gap-3 items-center">
-				<span class="font-bold text-lg">Members</span>
+			<div class="flex flex-col items-center gap-3 border-l border-accent">
+				<span class="text-lg font-bold">Members</span>
 				{#each selectedGuild.members ?? [] as member}
 					<span>{member.username}</span>
 				{/each}
+				<button
+					class="aspect-video w-5/6 rounded-2xl bg-gradient-to-br from-primary to-accent"
+					onclick={() => (showAddMember = true)}
+				>
+					Add a Member
+				</button>
 			</div>
 		{/if}
 	</div>
