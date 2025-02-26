@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { swipe, type SwipePointerEventDetail } from 'svelte-gestures';
 	import { isMobile } from '$lib/utils/detectDevice';
 	import { getMessages } from '$lib/requests/channels';
 	import { WebSocketClient } from '$lib/websocket';
@@ -10,18 +9,6 @@
 	import CreateChannel from './modals/createChannel.svelte';
 	import CreateGuild from './modals/createGuild.svelte';
 	import CreateMember from './modals/createMember.svelte';
-
-	//#region Mobile Swipe
-	let onMobile = isMobile();
-	let direction = $state<SwipePointerEventDetail['direction'] | null>(null);
-
-	function onswipeHandler(event: CustomEvent<SwipePointerEventDetail>) {
-		if (!onMobile) {
-			return;
-		}
-		direction = event.detail.direction;
-	}
-	// #endregion
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -155,11 +142,7 @@
 {#if error}
 	<span>{error.message}</span>
 {:else}
-	<div
-		class="grid h-full flex-1 gap-2 px-2 md:grid-cols-guildView"
-		use:swipe={{ timeframe: 300, minSwipeDistance: 100, touchAction: 'pan-y' }}
-		onswipe={onswipeHandler}
-	>
+	<div class="grid h-full flex-1 gap-2 px-2 md:grid-cols-guildView">
 		{#if showCreateChannel}
 			<CreateChannel closeCallback={() => (showCreateChannel = false)} />
 		{/if}
@@ -170,7 +153,7 @@
 			<CreateMember closeCallback={() => (showAddMember = false)} />
 		{/if}
 		<div
-			class={`${onMobile && direction == 'right' ? 'fixed left-0 w-24' : 'hidden md:grid'} grid h-full grid-cols-guildChannelView px-2`}
+			class={`fixed left-0 w-24 grid h-full grid-cols-guildChannelView px-2`}
 		>
 			<div
 				class={`flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background pr-2`}

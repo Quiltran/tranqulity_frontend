@@ -5,11 +5,11 @@
 	import '../app.css';
 	let { children } = $props();
 
-	let authenticated = $derived(authStore.isAuthenticated());
+	let authenticated = $derived(authStore.authState?.token);
 
 	$effect(() => {
 		if (authenticated) {
-			guildStore.getGuilds(authStore?.authState?.token ?? '');
+			guildStore.getGuilds(authenticated);
 		}
 	});
 </script>
