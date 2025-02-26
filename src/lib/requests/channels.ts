@@ -1,3 +1,5 @@
+import { authStore } from "$lib/stores/auth.svelte";
+
 export async function getMessages(guildId: string, channelId: string, pageNumber: number, token: string) {
     let response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/guild/${guildId}/channel/${channelId}/message/page/${pageNumber}`,
@@ -7,7 +9,10 @@ export async function getMessages(guildId: string, channelId: string, pageNumber
             }
         }
     );
-    if (!response.ok) {
+    if (response.status === 401) {
+        await authStore.refreshToken();
+        return [];
+    } else if (!response.ok) {
         console.error(response.status, response.statusText);
         Promise.reject("An error occurred while getting messages.");
     }
@@ -29,7 +34,10 @@ export async function createChannel(guildId: number, name: string, token: string
             })
         }
     );
-    if (!response.ok) {
+    if (response.status === 401) {
+        await authStore.refreshToken();
+        return [];
+    } else if (!response.ok) {
         console.error(response.status, response.statusText);
         Promise.reject("An error occurred while creating messages.");
     }

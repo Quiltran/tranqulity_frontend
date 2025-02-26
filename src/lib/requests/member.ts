@@ -1,3 +1,5 @@
+import { authStore } from "$lib/stores/auth.svelte";
+
 export async function getMembers(token: string, guildId: string) {
     let response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/member?exclude=${guildId}`,
@@ -7,7 +9,10 @@ export async function getMembers(token: string, guildId: string) {
             }
         }
     );
-    if (!response.ok) {
+    if (response.status === 401) {
+        await authStore.refreshToken();
+        return [];
+    } else if (!response.ok) {
         console.error(response.status, response.statusText);
         Promise.reject("An error occurred while getting members.");
     }
@@ -29,7 +34,10 @@ export async function createMember(token: string, userId: number, guildId: numbe
             })
         }
     );
-    if (!response.ok) {
+    if (response.status === 401) {
+        await authStore.refreshToken();
+        return [];
+    } else if (!response.ok) {
         console.error(response.status, response.statusText);
         Promise.reject("An error occurred while adding member.");
     }
