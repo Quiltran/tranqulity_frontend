@@ -1,3 +1,5 @@
+import { authStore } from "./auth.svelte";
+
 export interface GuildState {
     guilds: Guild[],
     currentGuild: Guild | null,
@@ -14,20 +16,22 @@ class GuildStore {
     constructor() { }
 
     async getGuilds(token: string) {
-        let response = await fetch(`${import.meta.env.VITE_API_URL}/api/guild`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/guild`, {
             headers: {
                 authorization: `Bearer ${token}`
             }
         });
-        if (!response.ok) {
-            console.error(response.status, response.statusText);
-            Promise.reject("An error occurred while collecting your guilds.");
+        if (response.ok) {
+            this.guildState = {
+                ...this.guildState,
+                guilds: await response.json(),
+            }
+            return;
+        } else if (response.status === 401) {
+            await authStore.refreshToken();
+        } else {
+            throw new Error(`Request failed with status: ${response.status}`)
         }
-        let data = await response.json();
-        this.guildState = {
-            ...this.guildState,
-            guilds: data,
-        };
     }
 
     setSelectedGuild(guild: Guild, channel: Channel | null) {
