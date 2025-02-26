@@ -24,7 +24,6 @@
 		};
 	}
 	async function disconnectCallback() {
-		console.log('refreshing auth');
 		await authStore.refreshToken();
 		if (!authStore.authState?.websocket_token) {
 			return Promise.reject('Unable to get new websocket token.');
