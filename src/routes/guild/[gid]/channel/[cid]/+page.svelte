@@ -13,7 +13,6 @@
 
 	const gid = $derived(page.params['gid']);
 	const cid = $derived(page.params['cid']);
-	$inspect(gid, cid)
 </script>
 
 <Chat gid={Number(gid)} cid={Number(cid)} />
