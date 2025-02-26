@@ -153,7 +153,7 @@
 			<CreateMember closeCallback={() => (showAddMember = false)} />
 		{/if}
 		<div
-			class={`fixed left-0 w-24 grid h-full grid-cols-guildChannelView px-2`}
+			class={`grid h-full grid-cols-guildChannelView px-2`}
 		>
 			<div
 				class={`flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background pr-2`}
