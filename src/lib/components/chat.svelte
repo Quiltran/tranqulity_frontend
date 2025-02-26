@@ -61,7 +61,7 @@
 			error = { message: 'Auth is not ready for websocket connection.' };
 			return;
 		}
-		wsClient = new WebSocketClient(`${import.meta.env.VITE_API_URL}/ws`, {
+		wsClient = new WebSocketClient(`${import.meta.env.VITE_WS_URL}/ws`, {
 			failCallback,
 			disconnectCallback,
 			reconnectCallback,
