@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
+	import { websocketStore } from '$lib/stores/websocket.svelte';
 	import '../app.css';
 	let { children } = $props();
 
@@ -10,6 +11,16 @@
 	$effect(() => {
 		if (authenticated) {
 			guildStore.getGuilds(authenticated);
+			websocketStore.connect(
+				`${import.meta.env.VITE_WS_URL}/ws`,
+				authStore.authState?.id ?? -1,
+				authStore.authState?.websocket_token ?? '',
+				{
+					failCallback: () => {},
+					reconnectCallback: () => {},
+					messageReceivedCallback: () => {}
+				}
+			);
 		}
 	});
 </script>

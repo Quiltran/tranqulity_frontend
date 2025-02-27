@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { isMobile } from '$lib/utils/detectDevice';
 	import { getMessages } from '$lib/requests/channels';
-	import { WebSocketClient } from '$lib/websocket';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import Plus from '$lib/svgs/plus.svelte';
@@ -9,6 +7,7 @@
 	import CreateChannel from './modals/createChannel.svelte';
 	import CreateGuild from './modals/createGuild.svelte';
 	import CreateMember from './modals/createMember.svelte';
+	import { websocketStore } from '$lib/stores/websocket.svelte';
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -23,13 +22,6 @@
 				'Failed to reconnect to the websocket. Please log out and back in to re-establish your connection.'
 		};
 	}
-	async function disconnectCallback() {
-		await authStore.refreshToken();
-		if (!authStore.authState?.websocket_token) {
-			return Promise.reject('Unable to get new websocket token.');
-		}
-		return authStore.authState?.websocket_token;
-	}
 	function reconnectCallback() {
 		error = null;
 	}
@@ -41,31 +33,18 @@
 	//#endregion
 
 	//#region initialize websocket
-	let wsClient: WebSocketClient;
-	$effect(() => {
-		if (!authStore.authState?.websocket_token || !authStore.authState?.id) {
-			error = { message: 'Auth is not ready for websocket connection.' };
-			return;
-		}
-		wsClient = new WebSocketClient(`${import.meta.env.VITE_WS_URL}/ws`, {
-			failCallback,
-			disconnectCallback,
-			reconnectCallback,
-			messageReceivedCallback
-		});
-		wsClient.connect(authStore.authState!.id || -1, authStore.authState!.websocket_token || '');
-
-		return () => {
-			wsClient?.disconnect();
-		};
-	});
+	websocketStore.setOptions({
+		failCallback,
+		reconnectCallback,
+		messageReceivedCallback
+	})
 	//#endregion
 
 	function sendMessage(message: string) {
 		if (!selectedChannel?.id) {
 			return;
 		}
-		wsClient.sendMessage(selectedChannel?.id, message, []);
+		websocketStore.sendMessage(selectedChannel?.id, message, []);
 		message = '';
 	}
 	let messages = $state<Message[]>([]);
