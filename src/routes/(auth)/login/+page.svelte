@@ -1,11 +1,17 @@
 <script lang="ts">
+	import Turnstile from '$lib/components/turnstile.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	let username = $state('');
 	let password = $state('');
 
 	function login(e: SubmitEvent) {
 		e.preventDefault();
-		authStore.login(username, password);
+		const response = turnstile.getResponse();
+		if (!response) {
+			alert('Unusual activity was detected. Please try again later or refresh the page.');
+			return;
+		}
+		authStore.login(username, password, response);
 	}
 </script>
 
@@ -42,6 +48,9 @@
 					Sign Up
 				</a>
 			</div>
+		</div>
+		<div class="flex justify-center">
+			<Turnstile />
 		</div>
 	</form>
 </div>

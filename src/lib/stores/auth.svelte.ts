@@ -16,14 +16,16 @@ class AuthStore {
         let auth = browser && localStorage.getItem('auth') || null;
         this.authState = auth && JSON.parse(auth) || null;
     }
-    login(username: string, password: string) {
+    login(username: string, password: string, turnstile: string) {
         fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json'
             },
             body: JSON.stringify({
-                username, password
+                username,
+                password,
+                turnstile,
             })
         })
             .then((response) => {
@@ -40,17 +42,18 @@ class AuthStore {
                 goto('/');
             });
     }
-    register(username: string, email: string, password: string, confirmPassword: string) {
+    register(username: string, email: string, password: string, confirmPassword: string, turnstile: string) {
         fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json'
             },
             body: JSON.stringify({
-                username: `${$state.snapshot(username)}`,
-                email: `${$state.snapshot(email)}`,
-                password: `${$state.snapshot(password)}`,
-                confirm_password: `${$state.snapshot(confirmPassword)}`
+                username,
+                email,
+                password,
+                confirm_password: confirmPassword,
+                turnstile
             })
         })
             .then((response) => {
