@@ -25,6 +25,12 @@
 		setTimeout(() => {
 			toastStore.removeNotification(notification);
 		}, 5000);
+
+		if (Notification.permission === "granted") {
+			new Notification(notification.type, {
+				body: notificationMessage
+			})
+		}
 	});
 </script>
 
