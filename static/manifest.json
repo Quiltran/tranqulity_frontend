@@ -1,0 +1,17 @@
+{
+    "name": "Quiltran",
+    "description": "Quiltran Chat Application",
+    "short_name": "quiltran",
+    "display": "standalone",
+    "start_url": "/",
+    "background_color": "#0c0212",
+    "theme_color": "#a8105c",
+    "icons": [
+        {
+            "src": "favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

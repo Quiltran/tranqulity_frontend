@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dev } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import Toaster from '$lib/components/toast/toaster.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -8,6 +9,12 @@
 	let { children } = $props();
 
 	let authenticated = $derived(authStore.authState?.token);
+
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('/service-worker.js', {
+			type: dev ? 'module' : 'classic'
+		})
+	}
 
 	$effect(() => {
 		if (authenticated) {
