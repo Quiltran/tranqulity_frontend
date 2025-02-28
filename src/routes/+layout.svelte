@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Toaster from '$lib/components/toast/toaster.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
@@ -47,6 +48,7 @@
 			{/if}
 		</div>
 	</div>
+	<Toaster />
 	<div class="flex flex-1 flex-col">
 		{@render children()}
 	</div>

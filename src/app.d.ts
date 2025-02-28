@@ -10,8 +10,8 @@ declare global {
 	}
 
 	interface WebsocketMessage {
-		type: string,
-		data: Message
+		type: "message" | "channel"
+		data: Message | Channel
 	}
 	interface Guild {
 		id: number;
@@ -37,6 +37,9 @@ declare global {
 		author: string,
 		author_id: number,
 		content: string,
+		guild: string,
+		channel: string,
+		channel_id: number,
 		attachments: string[],
 		created_date: Date,
 		updated_date: Date,

@@ -75,7 +75,7 @@ class AuthStore {
         let response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
             method: 'POST',
             headers: {
-				authorization: `Bearer ${this.authState?.token}`,
+                authorization: `Bearer ${this.authState?.token}`,
                 'content-type': 'application/json',
             },
             body: JSON.stringify({
@@ -84,8 +84,8 @@ class AuthStore {
         });
 
         if (!response.ok) {
-                console.error(response.status, response.statusText);
-                return Promise.reject("An error occurred while refreshing your token.");
+            console.error(response.status, response.statusText);
+            return
         }
         let data = await response.json() as AuthState;
         this.authState = data;
