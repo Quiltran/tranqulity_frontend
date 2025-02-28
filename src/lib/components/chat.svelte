@@ -15,6 +15,9 @@
 	let selectedGuild: Guild | null = $derived(guildStore.guildState.currentGuild);
 	let selectedChannel = $derived(guildStore.guildState.currentChannel);
 
+	let openGuilds = $state(false);
+	let openMembers = $state(false);
+
 	//#region websocket callbacks
 	function failCallback() {
 		error = {
@@ -37,10 +40,10 @@
 		failCallback,
 		reconnectCallback,
 		messageReceivedCallback
-	})
+	});
 	//#endregion
 
-	function sendMessage(message: string) {
+	function sendMessage() {
 		if (!selectedChannel?.id) {
 			return;
 		}
@@ -120,21 +123,35 @@
 {#if error}
 	<span>{error.message}</span>
 {:else}
-	<div class="grid h-full flex-1 gap-2 px-2 md:grid-cols-guildView">
-		{#if showCreateChannel}
-			<CreateChannel closeCallback={() => (showCreateChannel = false)} />
-		{/if}
-		{#if showCreateGuild}
-			<CreateGuild closeCallback={() => (showCreateGuild = false)} />
-		{/if}
-		{#if showAddMember}
-			<CreateMember closeCallback={() => (showAddMember = false)} />
-		{/if}
-		<div
-			class={`grid h-full grid-cols-guildChannelView px-2`}
-		>
+	{#if showCreateChannel}
+		<CreateChannel closeCallback={() => (showCreateChannel = false)} />
+	{/if}
+	{#if showCreateGuild}
+		<CreateGuild closeCallback={() => (showCreateGuild = false)} />
+	{/if}
+	{#if showAddMember}
+		<CreateMember closeCallback={() => (showAddMember = false)} />
+	{/if}
+	<div class="flex flex-col h-full flex-1 gap-2 grid-cols-1 md:grid md:grid-cols-guildView relative overflow-x-hidden">
+		<button class={`${openGuilds || openMembers ? 'absolute' : 'hidden' } md:hidden z-10 top-0 left-0 bottom-0 right-0 opacity-50 bg-background`} aria-label="close menus"
+		onclick={() => {
+			openGuilds = false;
+			openMembers = false;
+		}}
+		></button>
+		<div class="md:hidden border-b border-accent flex justify-between px-8 py-2">
+			<button type="button" class="underline underline-offset-2" onclick={() => {
+				openGuilds = true;
+				openMembers = false;
+			}}>Guilds</button>
+			<button type="button" class="underline underline-offset-2" onclick={() => {
+				openMembers = true;
+				openGuilds = false;
+			}}>Members</button>
+		</div>
+		<div class={`absolute transition-all duration-100 ${openGuilds ? 'left-0' : '-left-full'} md:left-0 md:px-0 grid z-10 top-0 md:relative md:grid h-full grid-cols-guildChannelView`}>
 			<div
-				class={`flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background pr-2`}
+				class="flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background px-2"
 			>
 				<span>Guilds</span>
 				{#each guilds as guild}
@@ -164,6 +181,7 @@
 					{#each selectedGuild?.channels || [] as channel}
 						<button
 							onclick={() => {
+								openGuilds = false;
 								goto(`/guild/${gid}/channel/${channel.id}`);
 							}}>{channel.name}</button
 						>
@@ -212,12 +230,18 @@
 						id="text"
 						bind:value={message}
 					></textarea>
-					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage(message)}>
+					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage()}>
 						Send
 					</button>
 				</div>
 			</div>
-			<div class="flex flex-col items-center gap-3 border-l border-accent">
+			<div class={`absolute md:relative transition-all duration-100 ${openMembers ? 'right-0' : '-right-full'} md:right-0 w-1/2 md:w-full h-full z-10 bg-background flex flex-col items-center gap-3 border-l border-accent`}>
+				<button
+					class="md:hidden w-5/6 h-10 rounded-2xl bg-gradient-to-br from-primary to-accent"
+					onclick={() => (openMembers = false)}
+				>
+					Close
+				</button>
 				<span class="text-lg font-bold">Members</span>
 				{#each selectedGuild.members ?? [] as member}
 					<span>{member.username}</span>

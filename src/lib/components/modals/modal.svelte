@@ -29,7 +29,7 @@
 		tabindex="0"
 		onmousedown={handleInnerClick}
 		class="max-w-screen fixed left-1/2 top-1/2 flex min-h-44 w-1/3 min-w-52 -translate-x-1/2 cursor-default
-                -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-lg border-2 border-primary p-4"
+                -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-lg border-2 border-primary p-4 bg-background"
 	>
 		{@render children()}
 	</div>
