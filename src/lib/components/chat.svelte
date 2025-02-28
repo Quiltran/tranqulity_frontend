@@ -43,7 +43,7 @@
 	});
 	//#endregion
 
-	function sendMessage(message: string) {
+	function sendMessage() {
 		if (!selectedChannel?.id) {
 			return;
 		}
