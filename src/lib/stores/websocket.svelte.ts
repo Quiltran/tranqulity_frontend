@@ -36,7 +36,9 @@ class WebsocketStore {
             this.options?.reconnectCallback();
             this.retryTries = 0;
 
+            console.log("starting timeout")
             this.pingTimeout = setInterval(() => {
+                console.log("timeout")
                 this.ws?.send(JSON.stringify({ "type": "Ping" }))
             }, 5000);
         }

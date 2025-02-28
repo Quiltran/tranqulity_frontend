@@ -8,6 +8,7 @@
 	import CreateGuild from './modals/createGuild.svelte';
 	import CreateMember from './modals/createMember.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
+	import { toastStore } from '$lib/stores/toast.svelte';
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -29,8 +30,10 @@
 		error = null;
 	}
 	function messageReceivedCallback(data: WebsocketMessage) {
-		if (data.type == 'message') {
-			messages.push(data.data);
+		if (data.type == 'message' && (data.data as Message).channel_id === selectedChannel?.id) {
+			messages.push(data.data as Message);
+		} else {
+			toastStore.addNotification(data);
 		}
 	}
 	//#endregion

@@ -4,15 +4,21 @@
 	const {
 		notification
 	}: {
-		notification: ApiNotification;
+		notification: WebsocketMessage;
 	} = $props();
+
+	console.log(notification.type);
 
 	let notificationMessage = $state('');
 	switch (notification.type) {
-		case 'message':
-			notificationMessage = `${(notification.data as Message).author} sent a message in ${(notification.data as Message).channel}`;
+		case "message":
+			notificationMessage = `${(notification.data as Message).author} sent a message in ${(notification.data as Message).guild}(${(notification.data as Message).channel})`;
+			break;
 		case 'channel':
 			notificationMessage = `You were added to ${(notification.data as Channel).name}`;
+			break;
+		default:
+			notificationMessage = "Something happened";
 	}
 
 	$effect(() => {

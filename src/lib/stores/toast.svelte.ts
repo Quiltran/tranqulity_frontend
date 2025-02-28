@@ -1,5 +1,5 @@
 export interface ToastState {
-    notifications: ApiNotification[],
+    notifications: WebsocketMessage[],
 }
 
 class ToastStore {
@@ -9,14 +9,12 @@ class ToastStore {
 
     constructor() { }
 
-    addNotification(notification: ApiNotification) {
+    addNotification(notification: WebsocketMessage) {
         this.toastState.notifications.push(notification)
-        console.log(this.toastState)
     }
 
-    removeNotification(notification: ApiNotification) {
+    removeNotification(notification: WebsocketMessage) {
         this.toastState.notifications = this.toastState.notifications.filter((x) => x != notification);
-        console.log(this.toastState)
     }
 }
 

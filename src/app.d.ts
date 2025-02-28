@@ -10,8 +10,8 @@ declare global {
 	}
 
 	interface WebsocketMessage {
-		type: string,
-		data: Message
+		type: "message" | "channel"
+		data: Message | Channel
 	}
 	interface Guild {
 		id: number;
@@ -39,6 +39,7 @@ declare global {
 		content: string,
 		guild: string,
 		channel: string,
+		channel_id: number,
 		attachments: string[],
 		created_date: Date,
 		updated_date: Date,
@@ -47,11 +48,6 @@ declare global {
 	interface Member {
 		id: number,
 		username: string,
-	}
-
-	interface ApiNotification {
-		type: "message" | "channel"
-		data: Message | Channel
 	}
 }
 
