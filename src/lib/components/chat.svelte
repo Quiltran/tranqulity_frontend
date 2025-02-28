@@ -132,24 +132,38 @@
 	{#if showAddMember}
 		<CreateMember closeCallback={() => (showAddMember = false)} />
 	{/if}
-	<div class="flex flex-col h-full flex-1 gap-2 grid-cols-1 md:grid md:grid-cols-guildView relative overflow-x-hidden">
-		<button class={`${openGuilds || openMembers ? 'absolute' : 'hidden' } md:hidden z-10 top-0 left-0 bottom-0 right-0 opacity-50 bg-background`} aria-label="close menus"
-		onclick={() => {
-			openGuilds = false;
-			openMembers = false;
-		}}
-		></button>
-		<div class="md:hidden border-b border-accent flex justify-between px-8 py-2">
-			<button type="button" class="underline underline-offset-2" onclick={() => {
-				openGuilds = true;
-				openMembers = false;
-			}}>Guilds</button>
-			<button type="button" class="underline underline-offset-2" onclick={() => {
-				openMembers = true;
+	<div
+		class="relative flex h-full flex-1 grid-cols-1 flex-col gap-2 overflow-x-hidden md:grid md:grid-cols-guildView"
+	>
+		<button
+			class={`${openGuilds || openMembers ? 'absolute' : 'hidden'} bottom-0 left-0 right-0 top-0 z-10 bg-background opacity-50 md:hidden`}
+			aria-label="close menus"
+			onclick={() => {
 				openGuilds = false;
-			}}>Members</button>
+				openMembers = false;
+			}}
+		></button>
+		<div class="flex justify-between border-b border-accent px-8 py-2 md:hidden">
+			<button
+				type="button"
+				class="underline underline-offset-2"
+				onclick={() => {
+					openGuilds = true;
+					openMembers = false;
+				}}>Guilds</button
+			>
+			<button
+				type="button"
+				class="underline underline-offset-2"
+				onclick={() => {
+					openMembers = true;
+					openGuilds = false;
+				}}>Members</button
+			>
 		</div>
-		<div class={`absolute transition-all duration-100 ${openGuilds ? 'left-0' : '-left-full'} md:left-0 md:px-0 grid z-10 top-0 md:relative md:grid h-full grid-cols-guildChannelView`}>
+		<div
+			class={`absolute transition-all duration-100 ${openGuilds ? 'left-0' : '-left-full'} top-0 z-10 grid h-full grid-cols-guildChannelView md:relative md:left-0 md:grid md:px-0`}
+		>
 			<div
 				class="flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background px-2"
 			>
@@ -235,9 +249,15 @@
 					</button>
 				</div>
 			</div>
-			<div class={`absolute md:relative transition-all duration-100 ${openMembers ? 'right-0' : '-right-full'} md:right-0 w-1/2 md:w-full h-full z-10 bg-background flex flex-col items-center gap-3 border-l border-accent`}>
+		{:else}
+			<div class="flex justify-center items-center">Select a channel to get started.</div>
+		{/if}
+		{#if selectedGuild}
+			<div
+				class={`absolute transition-all duration-100 md:relative ${openMembers ? 'right-0' : '-right-full'} z-10 flex h-full w-1/2 flex-col items-center gap-3 border-l border-accent bg-background md:right-0 md:w-full`}
+			>
 				<button
-					class="md:hidden w-5/6 h-10 rounded-2xl bg-gradient-to-br from-primary to-accent"
+					class="h-10 w-5/6 rounded-2xl bg-gradient-to-br from-primary to-accent md:hidden"
 					onclick={() => (openMembers = false)}
 				>
 					Close
