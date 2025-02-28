@@ -230,7 +230,7 @@
 						id="text"
 						bind:value={message}
 					></textarea>
-					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage(message)}>
+					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage()}>
 						Send
 					</button>
 				</div>
