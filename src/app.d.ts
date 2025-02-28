@@ -37,6 +37,8 @@ declare global {
 		author: string,
 		author_id: number,
 		content: string,
+		guild: string,
+		channel: string,
 		attachments: string[],
 		created_date: Date,
 		updated_date: Date,
@@ -45,6 +47,11 @@ declare global {
 	interface Member {
 		id: number,
 		username: string,
+	}
+
+	interface ApiNotification {
+		type: "message" | "channel"
+		data: Message | Channel
 	}
 }
 
