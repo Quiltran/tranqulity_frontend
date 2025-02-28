@@ -9,6 +9,7 @@
 	import CreateMember from './modals/createMember.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
 	import { toastStore } from '$lib/stores/toast.svelte';
+	import { menuStore } from '$lib/stores/menu.svelte';
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -16,8 +17,8 @@
 	let selectedGuild: Guild | null = $derived(guildStore.guildState.currentGuild);
 	let selectedChannel = $derived(guildStore.guildState.currentChannel);
 
-	let openGuilds = $state(false);
-	let openMembers = $state(false);
+	let guildsOpen = $derived(menuStore.menuState.guildsOpen);
+	let membersOpen = $derived(menuStore.menuState.membersOpen);
 
 	//#region websocket callbacks
 	function failCallback() {
@@ -139,33 +140,24 @@
 		class="relative flex h-full flex-1 grid-cols-1 flex-col gap-2 overflow-x-hidden md:grid md:grid-cols-guildView"
 	>
 		<button
-			class={`${openGuilds || openMembers ? 'absolute' : 'hidden'} bottom-0 left-0 right-0 top-0 z-10 bg-background opacity-50 md:hidden`}
+			class={`${guildsOpen || membersOpen ? 'absolute' : 'hidden'} bottom-0 left-0 right-0 top-0 z-10 bg-background opacity-50 md:hidden`}
 			aria-label="close menus"
-			onclick={() => {
-				openGuilds = false;
-				openMembers = false;
-			}}
+			onclick={() => menuStore.closeMenus()}
 		></button>
 		<div class="flex justify-between border-b border-accent px-8 py-2 md:hidden">
 			<button
 				type="button"
 				class="underline underline-offset-2"
-				onclick={() => {
-					openGuilds = true;
-					openMembers = false;
-				}}>Guilds</button
+				onclick={() => menuStore.openGuilds()}>Guilds</button
 			>
 			<button
 				type="button"
 				class="underline underline-offset-2"
-				onclick={() => {
-					openMembers = true;
-					openGuilds = false;
-				}}>Members</button
+				onclick={() => menuStore.openMembers()}>Members</button
 			>
 		</div>
 		<div
-			class={`absolute transition-all duration-100 ${openGuilds ? 'left-0' : '-left-full'} top-0 z-10 grid h-full grid-cols-guildChannelView md:relative md:left-0 md:grid md:px-0`}
+			class={`absolute transition-all duration-100 ${guildsOpen ? 'left-0' : '-left-full'} top-0 z-10 grid h-full grid-cols-guildChannelView md:relative md:left-0 md:grid md:px-0`}
 		>
 			<div
 				class="flex h-full w-full flex-col items-center gap-2 justify-self-center overflow-y-auto border-r border-accent bg-background px-2"
@@ -198,7 +190,7 @@
 					{#each selectedGuild?.channels || [] as channel}
 						<button
 							onclick={() => {
-								openGuilds = false;
+								menuStore.closeMenus();
 								goto(`/guild/${gid}/channel/${channel.id}`);
 							}}>{channel.name}</button
 						>
@@ -257,11 +249,11 @@
 		{/if}
 		{#if selectedGuild}
 			<div
-				class={`absolute transition-all duration-100 md:relative ${openMembers ? 'right-0' : '-right-full'} z-10 flex h-full w-1/2 flex-col items-center gap-3 border-l border-accent bg-background md:right-0 md:w-full`}
+				class={`absolute transition-all duration-100 md:relative ${membersOpen ? 'right-0' : '-right-full'} z-10 flex h-full w-1/2 flex-col items-center gap-3 border-l border-accent bg-background md:right-0 md:w-full`}
 			>
 				<button
 					class="h-10 w-5/6 rounded-2xl bg-gradient-to-br from-primary to-accent md:hidden"
-					onclick={() => (openMembers = false)}
+					onclick={() => menuStore.closeMenus()}
 				>
 					Close
 				</button>
