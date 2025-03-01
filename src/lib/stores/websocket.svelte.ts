@@ -52,6 +52,7 @@ class WebsocketStore {
 
             this.retryTries += 1;
             if (this.retryTries == this.maxRetry) {
+                this.options?.failCallback();
                 return;
             }
 
