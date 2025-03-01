@@ -36,10 +36,10 @@ export async function createMember(token: string, userId: number, guildId: numbe
     );
     if (response.status === 401) {
         await authStore.refreshToken();
-        return [];
+        throw new Error("User is not authorized to add member.")
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("An error occurred while adding member.");
+        throw new Error("An error occurred whiel adding member: " + response.status)
     }
     let data = await response.json();
     return data as Member;

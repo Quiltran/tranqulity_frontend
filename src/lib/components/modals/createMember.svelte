@@ -27,9 +27,17 @@
 			alert('No member has been selected.');
 			return;
 		}
+		if (!selectedGuild) {
+			alert('No guild is currently selected to add members to.');
+			return;
+		}
 		createMember(authStore.authState?.token ?? '', selectedMember.id, selectedGuild?.id ?? -1)
 			.then((data) => {
-				selectedGuild?.members.push(data);
+				if (!selectedGuild) return;
+				if (!selectedGuild.members) {
+					selectedGuild.members = [];
+				}
+				selectedGuild.members.push(data);
 			})
 			.catch((err) => {
 				console.error(err);

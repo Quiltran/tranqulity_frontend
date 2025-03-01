@@ -4,7 +4,7 @@
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import { toastStore } from '$lib/stores/toast.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import MessageElement from './message.svelte';
 
 	let selectedChannel = $derived(guildStore.guildState.currentChannel);
@@ -97,6 +97,13 @@
 
 		debouncer = false;
 	}
+
+	function handleScroll() {
+		if (scrollElement && scrollElement.scrollTop <= 10 && !debouncer) {
+			loadMoreMessages();
+		}
+	}
+
 	$effect(() => {
 		if (!messageBox) {
 			return;
@@ -114,12 +121,6 @@
 			stopFetching = false;
 		}
 	});
-
-	function handleScroll() {
-		if (scrollElement && scrollElement.scrollTop <= 10 && !debouncer) {
-			loadMoreMessages();
-		}
-	}
 
 	$effect(() => {
 		if (scrollElement) {
