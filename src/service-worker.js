@@ -66,3 +66,38 @@ self.addEventListener('fetch', (event) => {
 
     event.respondWith(respond());
 });
+
+
+self.addEventListener("push", (event) => {
+    try {
+        let data = event.data.json();
+        event.waitUntil(
+            self.registration.showNotification(data.title, {
+                body: data.body,
+                icon: data.icon || "/favicon.png", // Default icon
+                tag: data.tag || "push-notification",
+                vibrate: [100, 50, 100], // Vibration pattern
+                data: data, // Store URL for click event
+                actions: data.actions
+            })
+        );
+    } catch (e) {
+        console.error('Error showing notifications:', e)
+    }
+});
+
+self.addEventListener("notificationclick", (event) => {
+    event.notification.close()
+
+    const data = event.notification.data;
+
+    if (data && data.url) {
+        event.waitUntil(
+            clients.openWindow(data.url)
+        );
+    } else {
+        event.waitUntil(
+            clients.openWindow('/')
+        )
+    }
+});
