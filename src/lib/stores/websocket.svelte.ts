@@ -57,7 +57,6 @@ class WebsocketStore {
             try {
                 await this.disconnectCallback();
             } catch (err) {
-                alert(err);
                 this.options?.failCallback();
                 this.disconnect();
                 return;
