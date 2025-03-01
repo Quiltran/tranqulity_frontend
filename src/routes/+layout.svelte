@@ -17,15 +17,29 @@
 				type: dev ? 'module' : 'classic'
 			})
 			.then((registration) => {
-				console.log('Service worker registered:', registration);
-				navigator.serviceWorker.ready.then((registration) => {
-					console.log('Service worker ready:', registration);
-					setTimeout(() => {
+				var serviceWorker: ServiceWorker | null = null;
+				if (registration.installing) {
+					serviceWorker = registration.installing;
+				} else if (registration.waiting) {
+					serviceWorker = registration.waiting;
+				} else if (registration.active) {
+					serviceWorker = registration.active;
+				}
+
+				if (serviceWorker) {
+					if (serviceWorker.state == 'activated') {
 						subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
 							console.error(err)
 						);
-					}, 250);
-				});
+					}
+					serviceWorker.addEventListener('statechange', (e) => {
+						if (e?.target instanceof ServiceWorker && e.target.state == 'activated') {
+							subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
+								console.error(err)
+							);
+						}
+					});
+				}
 			})
 			.catch((error) => {
 				console.error('Service worker registration failed:', error);
