@@ -26,6 +26,12 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
                 "authorization": `Bearer ${token}`
             },
             body: JSON.stringify(subscription)
+        })
+        .then((resp) => {
+            if (!resp.ok) {
+                throw new Error("an error occurred while registring for subscribe");
+            }
+            alert("You've been registered for notifications");
         }).catch((err) => {
             console.log(err);
             alert("An error occurred while registering you for notifications. Please refresh to try again.")
