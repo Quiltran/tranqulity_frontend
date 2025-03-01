@@ -31,6 +31,10 @@
 	websocketStore.setOptions({
 		failCallback,
 		reconnectCallback,
+		disconnectCallback: async () => {
+			error = { message: 'Connection to the server has been lost. Attempting to reconnect.' };
+			return '';
+		},
 		messageReceivedCallback: () => {}
 	});
 	//#endregion
@@ -63,7 +67,6 @@
 			guildStore.setSelectedGuild(searchGuild, searchChannel);
 		}
 	});
-
 </script>
 
 {#if error}
