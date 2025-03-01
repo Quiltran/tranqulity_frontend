@@ -2,7 +2,9 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
     const publicKey = import.meta.env.VITE_VAPID_PUBLIC;
 
     try {
-        registration.unregister();
+        if (!navigator.serviceWorker.controller) {
+            throw new Error("installed but not controllering")
+        }
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
             console.log("Already subscribed")
@@ -36,10 +38,12 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
             console.log(err);
             alert("An error occurred while registering you for notifications. Please refresh to try again.")
             registration.unregister();
+            throw err;
         });
     } catch (error) {
         console.error("failed to subscribe to push notifications:", error);
         alert(error);
+        throw error;
     }
 }
 

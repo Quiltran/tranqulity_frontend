@@ -12,38 +12,33 @@
 	let authenticated = $derived(authStore.authState?.token);
 
 	if (browser && authStore.isAuthenticated() && 'serviceWorker' in navigator) {
-		navigator.serviceWorker
-			.register('/service-worker.js', {
-				type: dev ? 'module' : 'classic'
-			})
-			.then((registration) => {
-				var serviceWorker: ServiceWorker | null = null;
-				if (registration.installing) {
-					serviceWorker = registration.installing;
-				} else if (registration.waiting) {
-					serviceWorker = registration.waiting;
-				} else if (registration.active) {
-					serviceWorker = registration.active;
-				}
+		navigator.serviceWorker.ready.then((registration) => {
+			var serviceWorker: ServiceWorker | null = null;
+			if (registration.installing) {
+				serviceWorker = registration.installing;
+			} else if (registration.waiting) {
+				serviceWorker = registration.waiting;
+			} else if (registration.active) {
+				serviceWorker = registration.active;
+			}
+			console.log(serviceWorker);
 
-				if (serviceWorker) {
-					if (serviceWorker.state == 'activated') {
+			if (serviceWorker) {
+				if (serviceWorker.state == 'activated') {
+					subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
+						console.error(err)
+					);
+				}
+				serviceWorker.addEventListener('statechange', (e) => {
+					console.log('new', e.target);
+					if (e?.target instanceof ServiceWorker && e.target.state == 'activated') {
 						subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
 							console.error(err)
 						);
 					}
-					serviceWorker.addEventListener('statechange', (e) => {
-						if (e?.target instanceof ServiceWorker && e.target.state == 'activated') {
-							subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
-								console.error(err)
-							);
-						}
-					});
-				}
-			})
-			.catch((error) => {
-				console.error('Service worker registration failed:', error);
-			});
+				});
+			}
+		});
 	}
 
 	$effect(() => {
