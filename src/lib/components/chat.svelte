@@ -31,8 +31,8 @@
 	websocketStore.setOptions({
 		failCallback,
 		reconnectCallback,
-		disconnectCallback: async () => {
-			error = { message: 'Connection to the server has been lost. Attempting to reconnect.' };
+		disconnectCallback: async (retryNumber: number) => {
+			error = { message: `Connection to the server has been lost. Attempting to reconnect. Attempt ${retryNumber} out of ${websocketStore.maxRetryAttempts()}` };
 			return '';
 		},
 		messageReceivedCallback: () => {}

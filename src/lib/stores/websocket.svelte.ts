@@ -2,7 +2,7 @@ import { authStore } from "./auth.svelte";
 
 export interface WebsocketCallbackProps {
     failCallback: () => void;
-    disconnectCallback?: () => Promise<string>;
+    disconnectCallback?: (retryCount: number) => Promise<string>;
     reconnectCallback: () => void;
     messageReceivedCallback: (message: WebsocketMessage) => void;
 }
@@ -16,12 +16,16 @@ class WebsocketStore {
     private retryTries: number = 0;
     private maxRetry: number = 5;
     private disconnectCallback = async () => {
-        if (this.options?.disconnectCallback) this.options.disconnectCallback();
+        if (this.options?.disconnectCallback) this.options.disconnectCallback(this.retryTries);
 		await authStore.refreshToken();
 		if (!authStore.authState?.websocket_token) {
 			return Promise.reject('Unable to get new websocket token.');
 		}
 		return authStore.authState?.websocket_token;
+    }
+
+    maxRetryAttempts() {
+        return this.maxRetry;
     }
 
     connect(url: string, userId: number, token: string, options: WebsocketCallbackProps) {

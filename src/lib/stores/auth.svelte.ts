@@ -85,7 +85,10 @@ class AuthStore {
 
         if (!response.ok) {
             console.error(response.status, response.statusText);
-            return
+            if (authStore.authState) {
+                alert("An error occurred while refreshing your session. Please log in again.")
+            }
+            this.logout();
         }
         let data = await response.json() as AuthState;
         this.authState = data;
