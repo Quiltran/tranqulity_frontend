@@ -39,6 +39,7 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
         });
     } catch (error) {
         console.error("failed to subscribe to push notifications:", error);
+        alert(error);
     }
 }
 
