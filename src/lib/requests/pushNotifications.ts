@@ -3,7 +3,7 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
 
     try {
         if (!navigator.serviceWorker.controller) {
-            throw new Error("installed but not controllering")
+            location.reload();
         }
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
