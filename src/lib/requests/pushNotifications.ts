@@ -19,7 +19,7 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
             applicationServerKey: urlBase64ToUint8Array(publicKey),
         });
 
-        await fetch(`${import.meta.env.VITE_API_URL}/api/subscribe`, {
+        fetch(`${import.meta.env.VITE_API_URL}/api/subscribe`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
