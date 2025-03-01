@@ -1,19 +1,35 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { browser, dev } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import Toaster from '$lib/components/toast/toaster.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
+	import { subscribeToPush } from '$lib/requests/pushNotifications';
 	import '../app.css';
 	let { children } = $props();
 
 	let authenticated = $derived(authStore.authState?.token);
 
-	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.register('/service-worker.js', {
-			type: dev ? 'module' : 'classic'
-		})
+	if (browser && authStore.isAuthenticated() && 'serviceWorker' in navigator) {
+		navigator.serviceWorker
+			.register('/service-worker.js', {
+				type: dev ? 'module' : 'classic'
+			})
+			.then((registration) => {
+				console.log('Service worker registered:', registration);
+				navigator.serviceWorker.ready.then((registration) => {
+					console.log('Service worker ready:', registration);
+					setTimeout(() => {
+						subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
+							console.error(err)
+						);
+					}, 250);
+				});
+			})
+			.catch((error) => {
+				console.error('Service worker registration failed:', error);
+			});
 	}
 
 	$effect(() => {
