@@ -5,41 +5,10 @@
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
-	import { subscribeToPush } from '$lib/requests/pushNotifications';
 	import '../app.css';
 	let { children } = $props();
 
 	let authenticated = $derived(authStore.authState?.token);
-
-	if (browser && authStore.isAuthenticated() && 'serviceWorker' in navigator) {
-		navigator.serviceWorker.ready.then((registration) => {
-			var serviceWorker: ServiceWorker | null = null;
-			if (registration.installing) {
-				serviceWorker = registration.installing;
-			} else if (registration.waiting) {
-				serviceWorker = registration.waiting;
-			} else if (registration.active) {
-				serviceWorker = registration.active;
-			}
-			console.log(serviceWorker);
-
-			if (serviceWorker) {
-				if (serviceWorker.state == 'activated') {
-					subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
-						console.error(err)
-					);
-				}
-				serviceWorker.addEventListener('statechange', (e) => {
-					console.log('new', e.target);
-					if (e?.target instanceof ServiceWorker && e.target.state == 'activated') {
-						subscribeToPush(registration, authStore.authState?.token ?? '').catch((err) =>
-							console.error(err)
-						);
-					}
-				});
-			}
-		});
-	}
 
 	$effect(() => {
 		if (authenticated) {
@@ -71,7 +40,7 @@
 				>
 					Logout
 				</button>
-				<span>{authStore.authState.username}</span>
+				<button type="button" onclick={() => goto('/profile')}>{authStore.authState.username}</button>
 			{:else}
 				<button
 					class="flex items-center justify-center rounded-lg bg-primary px-2 py-1"

@@ -1,19 +1,13 @@
-export async function subscribeToPush(registration: ServiceWorkerRegistration, token: string) {
-    const publicKey = import.meta.env.VITE_VAPID_PUBLIC;
+import { browser } from "$app/environment";
 
-    try {
-        if (!navigator.serviceWorker.controller) {
-            location.reload();
-        }
+export async function subscribeToPush(token: string) {
+    if (browser && 'serviceWorker' in navigator) {
+        const publicKey = import.meta.env.VITE_VAPID_PUBLIC;
+
+        const registration = await navigator.serviceWorker.ready;
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
-            console.log("Already subscribed")
-            return;
-        }
-
-        const shouldRegister = confirm("In order to get notifications correctly, you must register your device. Would you like to do so?")
-        if (!shouldRegister) {
-            return;
+            existingSubscription.unsubscribe();
         }
 
         const subscription = await registration.pushManager.subscribe({
@@ -21,29 +15,50 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
             applicationServerKey: urlBase64ToUint8Array(publicKey),
         });
 
-        fetch(`${import.meta.env.VITE_API_URL}/api/subscribe`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(subscription)
-        })
-        .then((resp) => {
+        try {
+            let resp = await fetch(`${import.meta.env.VITE_API_URL}/api/subscribe`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(subscription)
+            });
             if (!resp.ok) {
                 throw new Error("an error occurred while registring for subscribe");
             }
-            alert("You've been registered for notifications");
-        }).catch((err) => {
-            console.log(err);
+        } catch (error) {
+            console.log(error);
             alert("An error occurred while registering you for notifications. Please refresh to try again.")
-            registration.unregister();
-            throw err;
-        });
-    } catch (error) {
-        console.error("failed to subscribe to push notifications:", error);
-        alert(error);
-        throw error;
+            registration.pushManager.getSubscription().then((sub) => {
+                if (!sub) return;
+                sub.unsubscribe();
+            });
+        }
+    } else {
+        location.reload();
+    }
+}
+
+export async function removeSubscription(token: string) {
+    try {
+        if (browser && 'serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            const resp = await fetch(`${import.meta.env.VITE_API_URL}/api/subscribe`, {
+                method: "DELETE",
+                headers: {
+                    "authorization": `Bearer ${token}`
+                }
+            })
+            if (!resp.ok) {
+                throw new Error("an error occurred while unsubscribing");
+            }
+            const sub = await reg.pushManager.getSubscription()
+            if (!sub) return;
+            sub?.unsubscribe();
+        }
+    } catch (err) {
+        alert('An error occurred while unregistering push notifications.')
     }
 }
 

@@ -49,6 +49,12 @@ declare global {
 		id: number,
 		username: string,
 	}
+
+	interface Profile {
+		username: string,
+		email: string,
+		notification_registered: boolean
+	}
 }
 
 export { };

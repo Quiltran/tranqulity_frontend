@@ -14,7 +14,8 @@ export default {
 			},
 			gridTemplateColumns: {
 				guildView: '15rem 1fr 8rem',
-				guildChannelView: '5rem 10rem'
+				guildChannelView: '5rem 10rem',
+				profileLayout: `10rem 1fr`,
 			},
 			borderRadius: {
 				all: '100%'
