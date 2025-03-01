@@ -10,6 +10,7 @@
 	import { websocketStore } from '$lib/stores/websocket.svelte';
 	import { toastStore } from '$lib/stores/toast.svelte';
 	import { menuStore } from '$lib/stores/menu.svelte';
+	import MessageElement from './message.svelte';
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -54,10 +55,35 @@
 		websocketStore.sendMessage(selectedChannel?.id, message, []);
 		message = '';
 	}
+	let stopFetching = $state(false);
 	let messages = $state<Message[]>([]);
 	let message = $state<string>('');
 	let messageBox = $state<HTMLTextAreaElement>();
 	let pageNumber = $state(0);
+	let fetchElemenet = $state<HTMLDivElement | null>(null);
+	let debouce = $state<boolean>(false);
+	let scrollArea = $state<HTMLDivElement | null>(null);
+
+	$effect(() => {
+		const observer = new IntersectionObserver((entries) => {
+			for (let entry of entries) {
+				console.log(entry.isIntersecting)
+				if (!stopFetching && entry.isIntersecting) {
+					const oldHeight = scrollArea?.scrollHeight ?? 0;
+					pageNumber += 1;
+
+					setTimeout(() => {
+						const newHeight = scrollArea?.scrollHeight ?? 0;
+						const addedHeight = newHeight - oldHeight;
+
+						window.scrollBy(0, addedHeight);
+					}, 10)
+				}
+			}
+		});
+		if (!fetchElemenet) return;
+		observer.observe(fetchElemenet);
+	});
 
 	$effect(() => {
 		if (!messageBox) {
@@ -71,12 +97,21 @@
 		if (!selectedGuild?.id || !selectedChannel?.id) {
 			return;
 		}
+		if (debouce || stopFetching) return;
 		getMessages(
 			selectedGuild?.id.toString(),
 			selectedChannel.id.toString(),
 			pageNumber,
 			authStore.authState?.token || ''
-		).then((m) => (messages = m ?? []));
+		).then((m) => {
+			if (m.length == 0) {
+				stopFetching = true;
+			}
+			messages = [...m, ...messages];
+		})
+		.finally(() => {
+			debouce = false;
+		});
 	});
 
 	$effect(() => {
@@ -210,20 +245,15 @@
 			<div class="flex h-full flex-col px-4">
 				<div class="relative flex flex-1">
 					<div class="absolute bottom-0 left-0 right-0 top-0">
-						<div class="flex h-full flex-col-reverse overflow-auto">
+						<div bind:this={scrollArea} class="flex h-full flex-col-reverse overflow-auto [overflow-anchor:none]">
 							<div class="flex min-h-full flex-col items-stretch justify-end">
-								{#each messages as message, index}
-									<div class="flex flex-col">
-										{#if index === 0 || showTime(message, messages[index - 1])}
-											<div>
-												<span class="text-xl">{message.author}</span>
-												<span class="text-xs">
-													{new Date(message.created_date).toLocaleDateString('en-us')}
-												</span>
-											</div>
-										{/if}
-										<span class="pl-8">{message.content}</span>
-									</div>
+								{#each messages as message, index (message.id)}
+									<MessageElement
+										{index}
+										bind:ref={fetchElemenet}
+										{message}
+										showFrom={index === 0 || showTime(message, messages[index - 1])}
+									/>
 								{:else}
 									<span>No messages have been posted in this channel yet.</span>
 								{/each}
@@ -245,7 +275,7 @@
 				</div>
 			</div>
 		{:else}
-			<div class="flex justify-center items-center">Select a channel to get started.</div>
+			<div class="flex items-center justify-center">Select a channel to get started.</div>
 		{/if}
 		{#if selectedGuild}
 			<div
