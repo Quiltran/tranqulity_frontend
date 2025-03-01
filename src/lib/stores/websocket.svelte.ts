@@ -98,6 +98,19 @@ class WebsocketStore {
     setOptions(options: WebsocketCallbackProps) {
         this.options = options;
     }
+
+    setMessageOption(messageCallback: WebsocketCallbackProps["messageReceivedCallback"]) {
+        if (!this.options) {
+            this.options = {
+                messageReceivedCallback: messageCallback,
+                failCallback: () => {},
+                disconnectCallback: () => new Promise(() => ""),
+                reconnectCallback: () => {},
+            }
+            return;
+        }
+        this.options.messageReceivedCallback = messageCallback
+    }
 }
 
 export const websocketStore = new WebsocketStore();

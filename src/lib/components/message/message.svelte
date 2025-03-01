@@ -1,6 +1,6 @@
 <script lang="ts">
 	let {
-		ref = $bindable(),
+		ref,
 		index,
 		message,
         showFrom
@@ -13,7 +13,7 @@
 </script>
 
 <div class="flex flex-col">
-    {#if index == 10}
+    {#if index == 0}
         <div bind:this={ref} data-fetching=true></div>
     {/if}
 	{#if showFrom}
@@ -24,5 +24,5 @@
 			</span>
 		</div>
 	{/if}
-	<span class="pl-8">{index} {message.content}</span>
+	<span class="pl-8">{message.content}</span>
 </div>

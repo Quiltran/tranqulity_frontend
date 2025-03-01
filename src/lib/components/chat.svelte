@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { getMessages } from '$lib/requests/channels';
-	import { authStore } from '$lib/stores/auth.svelte';
 	import { guildStore } from '$lib/stores/guild.svelte';
 	import Plus from '$lib/svgs/plus.svelte';
 	import { goto } from '$app/navigation';
@@ -8,9 +6,8 @@
 	import CreateGuild from './modals/createGuild.svelte';
 	import CreateMember from './modals/createMember.svelte';
 	import { websocketStore } from '$lib/stores/websocket.svelte';
-	import { toastStore } from '$lib/stores/toast.svelte';
 	import { menuStore } from '$lib/stores/menu.svelte';
-	import MessageElement from './message.svelte';
+	import MessageWindow from './message/messageWindow.svelte';
 
 	let { gid, cid }: { gid?: number; cid?: number } = $props();
 	let error = $state<{ message: string } | null>(null);
@@ -31,88 +28,16 @@
 	function reconnectCallback() {
 		error = null;
 	}
-	function messageReceivedCallback(data: WebsocketMessage) {
-		if (data.type == 'message' && (data.data as Message).channel_id === selectedChannel?.id) {
-			messages.push(data.data as Message);
-		} else {
-			toastStore.addNotification(data);
-		}
-	}
-	//#endregion
-
-	//#region initialize websocket
 	websocketStore.setOptions({
 		failCallback,
 		reconnectCallback,
-		messageReceivedCallback
+		messageReceivedCallback: () => {}
 	});
 	//#endregion
 
-	function sendMessage() {
-		if (!selectedChannel?.id) {
-			return;
-		}
-		websocketStore.sendMessage(selectedChannel?.id, message, []);
-		message = '';
-	}
-	let stopFetching = $state(false);
-	let messages = $state<Message[]>([]);
-	let message = $state<string>('');
-	let messageBox = $state<HTMLTextAreaElement>();
-	let pageNumber = $state(0);
-	let fetchElemenet = $state<HTMLDivElement | null>(null);
-	let debouce = $state<boolean>(false);
-	let scrollArea = $state<HTMLDivElement | null>(null);
-
-	$effect(() => {
-		const observer = new IntersectionObserver((entries) => {
-			for (let entry of entries) {
-				console.log(entry.isIntersecting)
-				if (!stopFetching && entry.isIntersecting) {
-					const oldHeight = scrollArea?.scrollHeight ?? 0;
-					pageNumber += 1;
-
-					setTimeout(() => {
-						const newHeight = scrollArea?.scrollHeight ?? 0;
-						const addedHeight = newHeight - oldHeight;
-
-						window.scrollBy(0, addedHeight);
-					}, 10)
-				}
-			}
-		});
-		if (!fetchElemenet) return;
-		observer.observe(fetchElemenet);
-	});
-
-	$effect(() => {
-		if (!messageBox) {
-			return;
-		}
-		messageBox.addEventListener('input', () => {
-			messageBox!.style.height = 'auto';
-			messageBox!.style.height = messageBox!.scrollHeight + 'px';
-		});
-
-		if (!selectedGuild?.id || !selectedChannel?.id) {
-			return;
-		}
-		if (debouce || stopFetching) return;
-		getMessages(
-			selectedGuild?.id.toString(),
-			selectedChannel.id.toString(),
-			pageNumber,
-			authStore.authState?.token || ''
-		).then((m) => {
-			if (m.length == 0) {
-				stopFetching = true;
-			}
-			messages = [...m, ...messages];
-		})
-		.finally(() => {
-			debouce = false;
-		});
-	});
+	let showCreateChannel = $state(false);
+	let showCreateGuild = $state(false);
+	let showAddMember = $state(false);
 
 	$effect(() => {
 		if (guilds.length == 0) return;
@@ -139,24 +64,6 @@
 		}
 	});
 
-	function showTime(message1: Message, message2: Message) {
-		if (message1.author !== message2.author) {
-			return true;
-		}
-
-		if (
-			new Date(message1.updated_date).getTime() - new Date(message2.updated_date).getTime() >
-			2000 * 60
-		) {
-			return true;
-		}
-
-		return false;
-	}
-
-	let showCreateChannel = $state(false);
-	let showCreateGuild = $state(false);
-	let showAddMember = $state(false);
 </script>
 
 {#if error}
@@ -241,42 +148,7 @@
 				</div>
 			{/if}
 		</div>
-		{#if selectedGuild && selectedChannel}
-			<div class="flex h-full flex-col px-4">
-				<div class="relative flex flex-1">
-					<div class="absolute bottom-0 left-0 right-0 top-0">
-						<div bind:this={scrollArea} class="flex h-full flex-col-reverse overflow-auto [overflow-anchor:none]">
-							<div class="flex min-h-full flex-col items-stretch justify-end">
-								{#each messages as message, index (message.id)}
-									<MessageElement
-										{index}
-										bind:ref={fetchElemenet}
-										{message}
-										showFrom={index === 0 || showTime(message, messages[index - 1])}
-									/>
-								{:else}
-									<span>No messages have been posted in this channel yet.</span>
-								{/each}
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="flex items-end gap-2 py-4">
-					<textarea
-						class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
-						placeholder="What do you want to say?"
-						bind:this={messageBox}
-						id="text"
-						bind:value={message}
-					></textarea>
-					<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage()}>
-						Send
-					</button>
-				</div>
-			</div>
-		{:else}
-			<div class="flex items-center justify-center">Select a channel to get started.</div>
-		{/if}
+		<MessageWindow />
 		{#if selectedGuild}
 			<div
 				class={`absolute transition-all duration-100 md:relative ${membersOpen ? 'right-0' : '-right-full'} z-10 flex h-full w-1/2 flex-col items-center gap-3 border-l border-accent bg-background md:right-0 md:w-full`}
