@@ -18,13 +18,19 @@
 	let fetchElemenet = $state<HTMLDivElement | null>(null);
 	let messageBox = $state<HTMLTextAreaElement>();
 	let debouncer = $state(false);
+	let submitted = $state(false);
 
+	function handleSubmit(e: SubmitEvent) {
+		e.preventDefault();
+		sendMessage();
+	}
 	function sendMessage() {
 		if (!selectedChannel?.id) {
 			return;
 		}
 		websocketStore.sendMessage(selectedChannel?.id, message, []);
 		message = '';
+		submitted = true;
 	}
 	function showTime(message1: Message, message2: Message) {
 		if (message1.author !== message2.author) {
@@ -44,6 +50,13 @@
 	function messageReceivedCallback(data: WebsocketMessage) {
 		if (data.type == 'message' && (data.data as Message).channel_id === selectedChannel?.id) {
 			messages.push(data.data as Message);
+			if (submitted) {
+				tick().then(() => {
+					if (scrollElement) {
+						scrollElement.scrollTo(0, scrollElement.scrollHeight);
+					}
+				});
+			}
 		} else {
 			toastStore.addNotification(data);
 		}
@@ -124,26 +137,6 @@
 			console.log('HIT');
 			loadMoreMessages();
 		}
-		// if (!selectedGuild?.id || !selectedChannel?.id) {
-		// 	return;
-		// }
-		// if (stopFetching) return;
-		// let oldFetch = fetchElemenet;
-		// getMessages(
-		// 	selectedGuild?.id.toString(),
-		// 	selectedChannel.id.toString(),
-		// 	pageNumber,
-		// 	authStore.authState?.token || ''
-		// )
-		// 	.then((m) => {
-		// 		if (m.length == 0) {
-		// 			stopFetching = true;
-		// 		}
-		// 		messages = [...m, ...messages];
-		//         return tick()
-		// 	})
-		//     .then(() => {
-		//     })
 	});
 </script>
 
@@ -171,7 +164,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="flex items-end gap-2 py-4">
+			<form onsubmit={handleSubmit} class="flex items-end gap-2 py-4">
 				<textarea
 					class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
 					placeholder="What do you want to say?"
@@ -179,10 +172,8 @@
 					id="text"
 					bind:value={message}
 				></textarea>
-				<button class="h-16 w-20 rounded-2xl bg-accent" onclick={() => sendMessage()}>
-					Send
-				</button>
-			</div>
+				<button type="submit" class="h-16 w-20 rounded-2xl bg-accent"> Send </button>
+			</form>
 		</main>
 	</div>
 {:else}
