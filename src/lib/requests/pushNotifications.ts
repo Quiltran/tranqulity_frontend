@@ -28,6 +28,7 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration, t
             body: JSON.stringify(subscription)
         }).catch((err) => {
             console.log(err);
+            alert("An error occurred while registering you for notifications. Please refresh to try again.")
             registration.unregister();
         });
     } catch (error) {
