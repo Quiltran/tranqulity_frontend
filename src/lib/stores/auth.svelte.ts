@@ -16,8 +16,8 @@ class AuthStore {
         let auth = browser && localStorage.getItem('auth') || null;
         this.authState = auth && JSON.parse(auth) || null;
     }
-    login(username: string, password: string, turnstile: string) {
-        fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+    async login(username: string, password: string, turnstile: string) {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json'
@@ -27,23 +27,20 @@ class AuthStore {
                 password,
                 turnstile,
             })
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    console.error(response.status, response.statusText);
-                    return Promise.reject("An error occurred while logging in.")
-                }
+        });
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error("Invalid credentials were provided.")
+            }
+            throw new Error("An error occurred while logging you in.")
+        }
 
-                return response.json();
-            })
-            .then((data) => {
-                this.authState = data as AuthState;
-                localStorage.setItem('auth', JSON.stringify(data));
-                goto('/');
-            });
+        const data = await response.json();
+        this.authState = data as AuthState;
+        localStorage.setItem('auth', JSON.stringify(data));
     }
-    register(username: string, email: string, password: string, confirmPassword: string, turnstile: string) {
-        fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+    async register(username: string, email: string, password: string, confirmPassword: string, turnstile: string) {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'content-type': 'application/json'
@@ -56,19 +53,16 @@ class AuthStore {
                 turnstile
             })
         })
-            .then((response) => {
-                if (!response.ok) {
-                    console.error(response.status, response.statusText);
-                    return Promise.reject("An error occurred while registering you.");
-                }
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error("The password you provided did not follow the correct format.")
+            }
+            throw new Error("An error occurred while registering you.");
+        }
 
-                return response.json()
-            })
-            .then((data) => {
-                this.authState = data as AuthState;
-                localStorage.setItem('auth', JSON.stringify(data));
-                goto('/login');
-            });
+        const data = await response.json()
+        this.authState = data as AuthState;
+        localStorage.setItem('auth', JSON.stringify(data));
     }
     async refreshToken() {
         let refresh_token = this.authState?.refresh_token;
