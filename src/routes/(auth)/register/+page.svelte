@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Turnstile from '$lib/components/turnstile.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { turnstileStore } from '$lib/stores/turnstile.svelte';
 
 	let username = $state('');
 	let email = $state('');
@@ -15,14 +16,24 @@
 		}
 	})
 
+	$effect(() => {
+		if (turnstileStore.isExpired() || turnstileStore.isTimeout()) {
+			alert('Turnstile returned an error of some kind.');
+			location.reload();
+		}
+	})
 
 	function register() {
-		const response = turnstile.getResponse();
-		if (!response) {
-			alert('Unusual activity was detected. Please try again later or refresh the page.');
+		if (!turnstileStore.isError() || !turnstileStore.isExpired() || !turnstileStore.isTimeout()) {
+			alert('Turnstile returned an error.');
+			location.reload();
+		}
+
+		if (!turnstileStore.token()) {
+			alert('Please wait until turnstile is done validating your session.')
 			return;
 		}
-		authStore.register(username, email, password, confirmPassword, response)
+		authStore.register(username, email, password, confirmPassword, turnstileStore.token())
 		.then(() => goto('/'))
 		.catch((err: Error) => {
 			alert(err.message);

@@ -9,6 +9,10 @@ declare global {
 		// interface Platform {}
 	}
 
+	interface Window {
+		turnstile?: any
+	}
+
 	interface WebsocketMessage {
 		type: "message" | "channel"
 		data: Message | Channel

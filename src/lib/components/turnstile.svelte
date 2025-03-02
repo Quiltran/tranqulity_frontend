@@ -1,59 +1,57 @@
 <script lang="ts">
-	import { browser } from '$app/environment'
+	import { browser } from '$app/environment';
 	import { turnstileStore } from '$lib/stores/turnstile.svelte';
-	import { createEventDispatcher } from 'svelte'
-	import { onMount } from 'svelte'
+	import { onMount } from 'svelte';
 
-    const {
-        fieldName = 'token',
-        action,
-        cData,
-        retryInterval = 8000,
-        retry = 'auto',
-        theme = 'auto',
-        size = 'normal',
-        forms = true,
-        tabIndex = 0
-    } : {
-        fieldName?: string,
-        action?: undefined,
-        cData?: undefined,
-        retryInterval?: number,
-        retry?: string,
-        theme?: string,
-        size?: string,
-        forms?: boolean,
-        tabIndex?: number
-    } = $props();
+	const {
+		fieldName = 'token',
+		action,
+		cData,
+		retryInterval = 8000,
+		retry = 'auto',
+		theme = 'auto',
+		size = 'normal',
+		forms = true,
+		tabIndex = 0
+	}: {
+		fieldName?: string;
+		action?: undefined;
+		cData?: undefined;
+		retryInterval?: number;
+		retry?: string;
+		theme?: string;
+		size?: string;
+		forms?: boolean;
+		tabIndex?: number;
+	} = $props();
 
-	const dispatch = createEventDispatcher()
-
-	let mounted = $state(false)
+	let mounted = $state(false);
+	let nonce = 
 	onMount(() => {
-		mounted = true
+		mounted = true;
 		return () => {
-			mounted = false
-		}
-	})
+			mounted = false;
+		};
+	});
 
 	function turnstileCallback() {
-        turnstileStore.setTurnstileLoaded(true)
+		turnstileStore.setLoaded(true);
 	}
 
 	function error() {
-		dispatch('turnstile-error', {})
+		turnstileStore.setError(true);
 	}
 
 	function expired() {
-		dispatch('turnstile-expired', {})
+		turnstileStore.setExpired(true);
 	}
 
 	function timeout() {
-		dispatch('turnstile-timeout', {})
+		turnstileStore.setTimeout(true);
 	}
 
 	function callback(token: string) {
-		dispatch('turnstile-callback', { token })
+		turnstileStore.setToken(token);
 	}
 
 	const turnstile = (node: HTMLElement) => {
@@ -73,25 +71,29 @@
 				theme,
 				cData,
 				size
-			})
+			});
 			return {
 				destroy: () => {
-					window.turnstile.remove(id)
+					window.turnstile.remove(id);
 				}
-			}
+			};
 		} catch (error) {
-			console.error(error)
+			console.error(error);
 		}
-	}
+	};
 </script>
 
 <svelte:head>
-	{#if browser && turnstileStore.turnstileLoaded == false}
-		<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" on:load={turnstileCallback} async></script>
+	{#if browser && turnstileStore.isLoaded() == false}
+		<script
+			src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+			onload={turnstileCallback}
+			async
+		></script>
 	{/if}
 </svelte:head>
 
-{#if mounted && turnstileStore.turnstileLoaded}
+{#if mounted && turnstileStore.isLoaded()}
 	{#key fieldName}
 		<div use:turnstile></div>
 	{/key}
