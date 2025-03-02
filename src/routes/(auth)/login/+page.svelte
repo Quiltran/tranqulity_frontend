@@ -21,13 +21,10 @@
 	})
 
 	function login() {
-		if (!turnstileStore.isError() || !turnstileStore.isExpired() || !turnstileStore.isTimeout()) {
-			alert('Turnstile returned an error.');
-			location.reload();
-		}
-
+		submitting = true;
 		if (!turnstileStore.token()) {
 			alert('Please wait until turnstile is done validating your session.')
+			submitting = false;
 			return;
 		}
 		authStore.login(username, password, turnstileStore.token())
@@ -68,10 +65,7 @@
 			<button
 				type="submit"
 				class="h-12 rounded-xl bg-primary md:col-span-2"
-				onclick={() => {
-					submitting = true;
-					login();
-				}}
+				onclick={() => login()}
 			>
 				{#if submitting}
 					<div
