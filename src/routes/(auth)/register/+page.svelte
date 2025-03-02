@@ -33,7 +33,7 @@
 		authStore.register(username, email, password, confirmPassword, turnstileStore.token())
 		.then(() => goto('/'))
 		.catch((err: Error) => {
-			alert(err.message);
+			alert(err.message)
 			location.reload();
 		});
 	}
