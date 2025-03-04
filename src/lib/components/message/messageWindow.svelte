@@ -61,7 +61,7 @@
 			return output;
 		} catch (err) {
 			console.error(err);
-			alert('An error occurred while trying to upload your file.');
+			alert('An error occurred while trying to upload your file.\n' + err);
 		}
 	}
 	async function sendMessage() {
