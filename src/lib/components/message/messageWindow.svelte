@@ -22,6 +22,8 @@
 	let debouncer = $state(false);
 	let submitted = $state(false);
 
+	let selectedFileCount = $state(0);
+
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		sendMessage();
@@ -199,6 +201,9 @@
 					</div>
 				</div>
 			</div>
+			{#if selectedFileCount}
+				<div>{selectedFileCount} files selected.</div>
+			{/if}
 			<form onsubmit={handleSubmit} class="relative flex items-center gap-2 py-4">
 				<textarea
 					class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
@@ -218,7 +223,13 @@
 						md:visible md:relative md:bottom-0 md:right-0 md:border-none md:p-0 md:opacity-100
 					"
 				>
-					<input type="file" accept="image/*" class="hidden" bind:this={fileElement} />
+					<input
+						type="file"
+						accept="image/*"
+						class="hidden"
+						onchange={(e) => (selectedFileCount = e.currentTarget.files?.length || 0)}
+						bind:this={fileElement}
+					/>
 					<button
 						type="button"
 						class="flex aspect-square h-16 items-center justify-center rounded-2xl bg-secondary"
