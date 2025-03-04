@@ -92,7 +92,7 @@ class WebsocketStore {
                 data: {
                     channel_id: channelId,
                     content,
-                    // attachments
+                    attachment_ids: attachments,
                 }
             }));
         } else {

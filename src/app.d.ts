@@ -59,6 +59,10 @@ declare global {
 		email: string,
 		notification_registered: boolean
 	}
+
+	interface Attachment {
+		id: number,
+	}
 }
 
 export { };

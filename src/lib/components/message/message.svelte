@@ -3,19 +3,19 @@
 		ref,
 		index,
 		message,
-        showFrom
+		showFrom
 	}: {
 		ref: HTMLDivElement | null;
-		index: number,
+		index: number;
 		message: Message;
-        showFrom: boolean
+		showFrom: boolean;
 	} = $props();
 </script>
 
 <div class="flex flex-col">
-    {#if index == 0}
-        <div bind:this={ref} data-fetching=true></div>
-    {/if}
+	{#if index == 0}
+		<div bind:this={ref} data-fetching="true"></div>
+	{/if}
 	{#if showFrom}
 		<div>
 			<span class="text-xl">{message.author}</span>
@@ -25,4 +25,11 @@
 		</div>
 	{/if}
 	<span class="pl-8">{message.content}</span>
+	{#each message.attachments as attachment}
+		<img
+			class="aspect-auto h-1/6 max-w-64"
+			alt={attachment}
+			src={`${import.meta.env.VITE_API_URL}${attachment}`}
+		/>
+	{/each}
 </div>

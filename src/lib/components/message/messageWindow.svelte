@@ -6,6 +6,7 @@
 	import { websocketStore } from '$lib/stores/websocket.svelte';
 	import { tick } from 'svelte';
 	import MessageElement from './message.svelte';
+	import Paperclip from '$lib/svgs/paperclip.svelte';
 
 	let selectedChannel = $derived(guildStore.guildState.currentChannel);
 	let selectedGuild: Guild | null = $derived(guildStore.guildState.currentGuild);
@@ -16,7 +17,9 @@
 	let pageNumber = $state(0);
 	let scrollElement = $state<HTMLDivElement>();
 	let fetchElemenet = $state<HTMLDivElement | null>(null);
+	let attachmentIds = $state<number[]>([]);
 	let messageBox = $state<HTMLTextAreaElement>();
+	let fileElement = $state<HTMLInputElement>();
 	let debouncer = $state(false);
 	let submitted = $state(false);
 
@@ -24,13 +27,49 @@
 		e.preventDefault();
 		sendMessage();
 	}
-	function sendMessage() {
-		if (!selectedChannel?.id) {
-			return;
+	async function sendFiles() {
+		let output: number[] = [];
+		if (!fileElement || !fileElement.files) return;
+		for (let file of fileElement.files) {
+			let formData = new FormData();
+			formData.append('name', file.name);
+			formData.append('file', file);
+
+			let response = await fetch(`${import.meta.env.VITE_API_URL}/api/attachment`, {
+				method: 'POST',
+				headers: {
+					authorization: `Bearer ${authStore.authState?.token ?? ''}`
+				},
+				body: formData
+			});
+			if (!response.ok) {
+				alert('An error occurred while uploading your attachments.');
+				throw new Error('Unable to upload attachments.');
+			}
+
+			if (response.status !== 201) {
+				alert('The server responded with an error while uploading your attachment.');
+				throw new Error('Unable to upload attachments.');
+			}
+
+			let data = (await response.json()) as Attachment;
+			output.push(data.id);
 		}
-		websocketStore.sendMessage(selectedChannel?.id, message, []);
-		message = '';
-		submitted = true;
+
+		return output;
+	}
+	async function sendMessage() {
+		try {
+			if (!selectedChannel?.id) {
+				return;
+			}
+			let attachments = await sendFiles();
+			websocketStore.sendMessage(selectedChannel?.id, message, attachments ?? []);
+			message = '';
+			submitted = true;
+		} catch (err) {
+			console.error(err);
+		}
 	}
 	function showTime(message1: Message, message2: Message) {
 		if (message1.author !== message2.author) {
@@ -123,6 +162,9 @@
 	});
 
 	$effect(() => {
+		if (scrollElement && scrollElement.scrollTop === 0) {
+			loadMoreMessages();
+		}
 		if (scrollElement) {
 			scrollElement.addEventListener('scroll', handleScroll);
 		}
@@ -131,13 +173,6 @@
 				scrollElement.removeEventListener('scroll', handleScroll);
 			}
 		};
-	});
-
-	$effect(() => {
-		if (scrollElement && scrollElement.scrollTop === 0) {
-			console.log('HIT');
-			loadMoreMessages();
-		}
 	});
 </script>
 
@@ -165,7 +200,7 @@
 					</div>
 				</div>
 			</div>
-			<form onsubmit={handleSubmit} class="flex items-end gap-2 py-4">
+			<form onsubmit={handleSubmit} class="relative flex items-center gap-2 py-4">
 				<textarea
 					class="h-auto max-h-36 w-full resize-none rounded-2xl border border-accent bg-background p-2 outline-none"
 					placeholder="What do you want to say?"
@@ -173,7 +208,30 @@
 					id="text"
 					bind:value={message}
 				></textarea>
-				<button type="submit" class="h-16 w-20 rounded-2xl bg-accent"> Send </button>
+				<button
+					type="button"
+					class="peer absolute bottom-full right-0 z-10 aspect-square h-1/2 rounded-2xl bg-primary md:relative md:bottom-0 md:hidden"
+				>
+					<span>^</span>
+				</button>
+				<div
+					class="invisible absolute -right-4 bottom-full z-20 rounded-xl border border-accent bg-background p-2 opacity-0 transition-all duration-300 peer-focus:visible peer-focus:right-0 peer-focus:opacity-100
+						md:visible md:relative md:bottom-0 md:right-0 md:border-none md:p-0 md:opacity-100
+					"
+				>
+					<input type="file" accept="image/*" class="hidden" bind:this={fileElement} />
+					<button
+						type="button"
+						class="flex aspect-square h-16 items-center justify-center rounded-2xl bg-secondary"
+						onclick={(e) => {
+							e.preventDefault();
+							fileElement?.click();
+						}}
+					>
+						<Paperclip />
+					</button>
+				</div>
+				<button type="submit" class="aspect-square h-16 rounded-2xl bg-accent"> Send </button>
 			</form>
 		</main>
 	</div>
