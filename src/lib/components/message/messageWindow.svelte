@@ -76,6 +76,11 @@
 		} catch (err) {
 			console.error(err);
 			alert(err);
+		} finally {
+			if (fileElement) {
+				fileElement.value = "";
+				selectedFileCount = 0;
+			}
 		}
 	}
 	function showTime(message1: Message, message2: Message) {
