@@ -16,8 +16,7 @@
 	let message = $state<string>('');
 	let pageNumber = $state(0);
 	let scrollElement = $state<HTMLDivElement>();
-	let fetchElemenet = $state<HTMLDivElement | null>(null);
-	let attachmentIds = $state<number[]>([]);
+	let fetchElement = $state<HTMLDivElement | null>(null);
 	let messageBox = $state<HTMLTextAreaElement>();
 	let fileElement = $state<HTMLInputElement>();
 	let debouncer = $state(false);
@@ -189,7 +188,7 @@
 							{#each messages as message, index (message.id)}
 								<MessageElement
 									{index}
-									ref={fetchElemenet}
+									ref={fetchElement}
 									{message}
 									showFrom={index === 0 || showTime(message, messages[index - 1])}
 								/>
