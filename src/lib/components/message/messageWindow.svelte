@@ -29,35 +29,40 @@
 		sendMessage();
 	}
 	async function sendFiles() {
-		let output: number[] = [];
-		if (!fileElement || !fileElement.files) return;
-		for (let file of fileElement.files) {
-			let formData = new FormData();
-			formData.append('name', file.name);
-			formData.append('file', file);
+		try {
+			let output: number[] = [];
+			if (!fileElement || !fileElement.files) return;
+			for (let file of fileElement.files) {
+				let formData = new FormData();
+				formData.append('name', file.name);
+				formData.append('file', file);
 
-			let response = await fetch(`${import.meta.env.VITE_API_URL}/api/attachment`, {
-				method: 'POST',
-				headers: {
-					authorization: `Bearer ${authStore.authState?.token ?? ''}`
-				},
-				body: formData
-			});
-			if (!response.ok) {
-				alert('An error occurred while uploading your attachments.');
-				throw new Error('Unable to upload attachments.');
+				let response = await fetch(`${import.meta.env.VITE_API_URL}/api/attachment`, {
+					method: 'POST',
+					headers: {
+						authorization: `Bearer ${authStore.authState?.token ?? ''}`
+					},
+					body: formData
+				});
+				if (!response.ok) {
+					alert('An error occurred while uploading your attachments.');
+					throw new Error('Unable to upload attachments.');
+				}
+
+				if (response.status !== 201) {
+					alert('The server responded with an error while uploading your attachment.');
+					throw new Error('Unable to upload attachments.');
+				}
+
+				let data = (await response.json()) as Attachment;
+				output.push(data.id);
 			}
 
-			if (response.status !== 201) {
-				alert('The server responded with an error while uploading your attachment.');
-				throw new Error('Unable to upload attachments.');
-			}
-
-			let data = (await response.json()) as Attachment;
-			output.push(data.id);
+			return output;
+		} catch (err) {
+			console.error(err);
+			alert('An error occurred while trying to upload your file.');
 		}
-
-		return output;
 	}
 	async function sendMessage() {
 		try {
