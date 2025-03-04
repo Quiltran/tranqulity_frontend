@@ -70,6 +70,7 @@
 			submitted = true;
 		} catch (err) {
 			console.error(err);
+			alert(err);
 		}
 	}
 	function showTime(message1: Message, message2: Message) {
