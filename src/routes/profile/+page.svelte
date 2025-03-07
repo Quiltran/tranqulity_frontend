@@ -3,6 +3,7 @@
 	import StyledInput from '$lib/components/styledInput.svelte';
 	import { getUserProfile } from '$lib/requests/profile';
 	import { removeSubscription, subscribeToPush } from '$lib/requests/pushNotifications';
+	import { loginWebAuthn, registerWebAuthn } from '$lib/requests/webauthn';
 	import { authStore } from '$lib/stores/auth.svelte';
 
 	let error = $state<string | null>(null);
@@ -26,6 +27,26 @@
 		});
 	}
 
+	function registerToWebAuthn() {
+		registerWebAuthn(authStore.authState?.token ?? '')
+			.then(() => {
+				alert('WebAuthn has been registered');
+			})
+			.catch((err) => {
+				alert(`An error occurred while registering for WebAuthn: ${err}`);
+			});
+	}
+
+	function loginToWebAuthn() {
+		loginWebAuthn()
+			.then(() => {
+				alert('Login test was successful.');
+			})
+			.catch((err) => {
+				alert(`An error occurred while logging in with WebAuthn: ${err}`);
+			});
+	}
+
 	$effect(() => {
 		getUserProfile(authStore.authState?.token ?? '')
 			.then((data) => (profile = data))
@@ -43,18 +64,27 @@
 	<span>No profile information</span>
 {:else}
 	<div class="md:p-10">
-		<div class="grid max-w-80 grid-cols-2 items-center gap-2">
-			<label for="username" class="text-lg font-bold">Username:</label>
-			<StyledInput name="username" bind:value={profile.username} type="text" disabled />
-			<label for="username" class="text-lg font-bold">Email:</label>
-			<StyledInput name="username" bind:value={profile.email} type="text" disabled />
+		<div class="flex max-w-80 flex-col items-center gap-2">
+			<h2 class="text-lg font-bold">User Information</h2>
+			<div class="grid grid-cols-2">
+				<label for="username" class="text-lg font-bold">Username:</label>
+				<StyledInput name="username" bind:value={profile.username} type="text" disabled />
+				<label for="username" class="text-lg font-bold">Email:</label>
+				<StyledInput name="username" bind:value={profile.email} type="text" disabled />
+			</div>
 
-			<label for="notification-register" class="text-lg font-bold">Notification Register:</label>
+			<label for="notification-register" class="text-lg font-bold">Push Notifications</label>
 			{#if profile.notification_registered}
 				<StyledButton text="Unregister" onclick={unregisterNotifications} />
 			{:else}
 				<StyledButton text="Register" onclick={registerNotifications} />
 			{/if}
+
+			<label for="notification-register" class="text-lg font-bold">Passwordless Login</label>
+			<div class="flex flex-col gap-2">
+				<StyledButton text="Register" onclick={registerToWebAuthn} />
+				<StyledButton text="Test Login" onclick={loginToWebAuthn} />
+			</div>
 		</div>
 	</div>
 {/if}

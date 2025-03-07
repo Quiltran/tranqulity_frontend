@@ -7,10 +7,9 @@ export interface WebsocketCallbackProps {
     messageReceivedCallback: (message: WebsocketMessage) => void;
 }
 
-
 class WebsocketStore {
     private ws = $state<WebSocket | null>(null);
-    private url: string = "";
+    private url: string = `${import.meta.env.VITE_WS_URL}/ws`;
     private options = $state<WebsocketCallbackProps | null>(null);
     private pingTimeout: number = 0;
     private retryTries: number = 0;
@@ -19,23 +18,25 @@ class WebsocketStore {
         if (this.options?.disconnectCallback) this.options.disconnectCallback(this.retryTries);
 		await authStore.refreshToken();
 		if (!authStore.authState?.websocket_token) {
-			return Promise.reject('Unable to get new websocket token.');
+			throw new Error('Unable to get new websocket token.');
 		}
-		return authStore.authState?.websocket_token;
     }
 
     maxRetryAttempts() {
         return this.maxRetry;
     }
 
-    connect(url: string, userId: number, token: string, options: WebsocketCallbackProps) {
+    connect(options: WebsocketCallbackProps) {
         if (this.ws && (this.ws.readyState == this.ws.OPEN || this.ws.readyState == this.ws.CONNECTING)) {
             return;
         };
-        this.url = url;
         if (!this.options) this.options = options;
 
-        this.ws = new WebSocket(`${this.url}/${userId}/${token}`);
+        if (!authStore.authState) {
+            throw new Error("User is not authenticated cannot connect to websocket");
+        }
+
+        this.ws = new WebSocket(`${this.url}/${authStore.authState.id}/${authStore.authState.websocket_token}`);
 
         this.ws.onopen = () => {
             this.options?.reconnectCallback();
@@ -57,14 +58,13 @@ class WebsocketStore {
             this.retryTries += 1;
             if (this.retryTries == this.maxRetry) {
                 this.options?.failCallback();
+                this.disconnect();
                 return;
             }
 
             try {
                 await this.disconnectCallback();
             } catch (err) {
-                this.options?.failCallback();
-                this.disconnect();
                 return;
             }
         }
