@@ -17,6 +17,7 @@
 
 	$effect(() => {
 		if (authenticated) {
+			$inspect(authStore.authState);
 			guildStore.getGuilds(authenticated);
 			websocketStore.connect(
 				{
@@ -33,7 +34,7 @@
 	<div
 		class={`flex h-14 items-center justify-between gap-7 px-10 ${authStore.authState?.id && 'border-b border-primary'}`}
 	>
-		<button class="text-lg font-bold" onclick={() => goto('/')}>Tranquility</button>
+		<button class="text-lg font-bold" onclick={() => goto('/')}>Quiltran</button>
 		<div class="flex items-center justify-center gap-3">
 			{#if authStore.authState?.id}
 				<button

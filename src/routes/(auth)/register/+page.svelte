@@ -46,7 +46,7 @@
 	<form class="rounded-xl border-2 border-accent p-6" onsubmit={(e) => e.preventDefault()}>
 		<div class="flex flex-col gap-4 pb-10">
 			<h1 class="text-xl font-bold">Register</h1>
-			<span class="md:col-span-2">Register to gain full access to Tranquility</span>
+			<span class="md:col-span-2">Register to gain full access to Quiltran</span>
 		</div>
 		<div class="grid gap-5 md:grid-cols-2">
 			<label for="username" class="flex flex-col">

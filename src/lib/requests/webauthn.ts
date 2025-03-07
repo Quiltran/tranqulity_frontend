@@ -20,6 +20,9 @@ export async function registerWebAuthn(token: string) {
         if (!browser) {
             throw new Error("registration for webauthn was attempted outside of the browser");
         }
+        if (!('PublicKeyCredential' in window)) {
+            throw new Error("User's browser doesn't support webauthn.")
+        }
 
         const beginResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/webauthn/register/begin`, {
             method: "POST",
@@ -70,6 +73,60 @@ export async function registerWebAuthn(token: string) {
         }
 
         alert('Successfully registered for WebAuthn');
+    } catch (err) {
+        console.error(err)
+        throw err;
+    }
+}
+
+export async function loginWebAuthn() {
+    try {
+        if (!browser) {
+            throw new Error("registration for webauthn was attempted outside of the browser");
+        }
+
+        const beginResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/webauthn/login/begin`, {
+                method: "POST",
+            }
+        );
+        if (!beginResponse.ok) {
+            throw new Error(`failed to get webauthn login options: ${beginResponse.status}`)
+        }
+
+        const options = await beginResponse.json();
+        options.publicKey.challenge = base64URLToBuffer(options.publicKey.challenge);
+
+        const credential = await navigator.credentials.get(options) as PublicKeyCredential;
+        if (!credential) {
+            throw new Error("could not find credential for webauthn login")
+        }
+        let credResponse = credential.response as AuthenticatorAssertionResponse
+
+        const response = {
+            id: credential.id,
+            rawId: bufferToBase64URL(credential.rawId),
+            type: credential.type,
+            response: {
+                authenticatorData: bufferToBase64URL(credResponse.authenticatorData),
+                clientDataJSON: bufferToBase64URL(credResponse.clientDataJSON),
+                signature: bufferToBase64URL(credResponse.signature),
+                userHandle: credResponse.userHandle ? bufferToBase64URL(credResponse.userHandle) : null
+            }
+        }
+
+        const completeResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/webauthn/login/complete`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(response)
+        })
+
+        if (!completeResponse.ok) {
+            throw new Error("failed to complete webauthn login");
+        }
+
+        return await completeResponse.json();
     } catch (err) {
         console.error(err)
         throw err;
