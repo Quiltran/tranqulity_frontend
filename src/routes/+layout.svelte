@@ -7,26 +7,17 @@
 	import '../app.css';
 	let { children } = $props();
 
-	let authenticated = $derived(authStore.authState?.token);
-
 	$effect(() => {
 		if (!authStore.isAuthenticated()) {
-			goto('/')
+			goto('/');
+			return;
 		}
-	})
-
-	$effect(() => {
-		if (authenticated) {
-			$inspect(authStore.authState);
-			guildStore.getGuilds(authenticated);
-			websocketStore.connect(
-				{
-					failCallback: () => {},
-					reconnectCallback: () => {},
-					messageReceivedCallback: () => {}
-				}
-			);
-		}
+		guildStore.getGuilds(authStore.authState?.token ?? '');
+		websocketStore.connect({
+			failCallback: () => {},
+			reconnectCallback: () => {},
+			messageReceivedCallback: () => {}
+		});
 	});
 </script>
 
@@ -36,14 +27,16 @@
 	>
 		<button class="text-lg font-bold" onclick={() => goto('/')}>Quiltran</button>
 		<div class="flex items-center justify-center gap-3">
-			{#if authStore.authState?.id}
+			{#if authStore.isAuthenticated()}
 				<button
 					class="flex items-center justify-center rounded-lg bg-primary px-2 py-1"
 					onclick={() => authStore.logout()}
 				>
 					Logout
 				</button>
-				<button type="button" onclick={() => goto('/profile')}>{authStore.authState.username}</button>
+				<button type="button" onclick={() => goto('/profile')}>
+					{authStore.authState!.username}
+				</button>
 			{:else}
 				<button
 					class="flex items-center justify-center rounded-lg bg-primary px-2 py-1"
