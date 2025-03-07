@@ -36,6 +36,10 @@ sw.addEventListener('activate', (event) => {
 sw.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
+    if (event.request.url.includes("auth") || event.request.url.includes("profile")) {
+        return;
+    }
+
     async function respond() {
         const url = new URL(event.request.url);
         const cache = await caches.open(CACHE);

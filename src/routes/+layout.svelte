@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser, dev } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import Toaster from '$lib/components/toast/toaster.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -11,12 +10,15 @@
 	let authenticated = $derived(authStore.authState?.token);
 
 	$effect(() => {
+		if (!authStore.isAuthenticated()) {
+			goto('/')
+		}
+	})
+
+	$effect(() => {
 		if (authenticated) {
 			guildStore.getGuilds(authenticated);
 			websocketStore.connect(
-				`${import.meta.env.VITE_WS_URL}/ws`,
-				authStore.authState?.id ?? -1,
-				authStore.authState?.websocket_token ?? '',
 				{
 					failCallback: () => {},
 					reconnectCallback: () => {},

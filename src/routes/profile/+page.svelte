@@ -3,6 +3,7 @@
 	import StyledInput from '$lib/components/styledInput.svelte';
 	import { getUserProfile } from '$lib/requests/profile';
 	import { removeSubscription, subscribeToPush } from '$lib/requests/pushNotifications';
+	import { registerWebAuthn } from '$lib/requests/webauthn';
 	import { authStore } from '$lib/stores/auth.svelte';
 
 	let error = $state<string | null>(null);
@@ -24,6 +25,15 @@
 				profile.notification_registered = true;
 			}
 		});
+	}
+
+	function registerToWebAuthn() {
+		registerWebAuthn(authStore.authState?.token ?? "").then(() => {
+			alert('WebAuthn has been registered');
+		})
+		.catch((err) => {
+			alert(`An error occurred while registering for WebAuthn: ${err}`);
+		})
 	}
 
 	$effect(() => {
@@ -55,6 +65,9 @@
 			{:else}
 				<StyledButton text="Register" onclick={registerNotifications} />
 			{/if}
+
+			<label for="notification-register" class="text-lg font-bold">WebAuthn Register:</label>
+			<StyledButton text="Register" onclick={registerToWebAuthn} />
 		</div>
 	</div>
 {/if}

@@ -35,6 +35,9 @@
 		.catch((err: Error) => {
 			alert(err.message)
 			location.reload();
+		})
+		.finally(() => {
+			submitting = false;
 		});
 	}
 </script>

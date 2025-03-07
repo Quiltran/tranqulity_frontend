@@ -40,53 +40,65 @@ class AuthStore {
         localStorage.setItem('auth', JSON.stringify(data));
     }
     async register(username: string, email: string, password: string, confirmPassword: string, turnstile: string) {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-                confirm_password: confirmPassword,
-                turnstile
-            })
-        })
-        if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error("The password you provided did not follow the correct format.")
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                    confirm_password: confirmPassword,
+                    turnstile
+                })
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error("The password you provided did not follow the correct format.");
+                }
+                throw new Error("An error occurred while registering you.");
             }
-            throw new Error("An error occurred while registering you.");
-        }
 
-        const data = await response.json()
-        this.authState = data as AuthState;
-        localStorage.setItem('auth', JSON.stringify(data));
+            const data = await response.json();
+            this.authState = data as AuthState;
+            localStorage.setItem('auth', JSON.stringify(data));
+        }
+        catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
     async refreshToken() {
-        let refresh_token = this.authState?.refresh_token;
-        let response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
-            method: 'POST',
-            headers: {
-                authorization: `Bearer ${this.authState?.token}`,
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                "refresh_token": refresh_token
-            })
-        });
+        try {
+            let refresh_token = this.authState?.refresh_token;
+            let response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                    authorization: `Bearer ${this.authState?.token}`,
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "refresh_token": refresh_token
+                })
+            });
 
-        if (!response.ok) {
-            console.error(response.status, response.statusText);
-            if (authStore.authState) {
-                alert("An error occurred while refreshing your session. Please log in again.")
+            if (!response.ok) {
+                console.error(response.status, response.statusText);
+                if (authStore.authState) {
+                    throw new Error("An error occurred while refreshing your session. Please log in again.")
+                }
+                this.logout();
             }
-            this.logout();
+            let data = await response.json() as AuthState;
+            this.authState = data;
+            localStorage.setItem('auth', JSON.stringify(data));
+        } catch (err) {
+            console.error(err);
+            this.logout()
+            alert("An error occurred while refreshing your session. Please log in again.");
         }
-        let data = await response.json() as AuthState;
-        this.authState = data;
-        localStorage.setItem('auth', JSON.stringify(data));
     }
     logout() {
         localStorage.removeItem('auth');
