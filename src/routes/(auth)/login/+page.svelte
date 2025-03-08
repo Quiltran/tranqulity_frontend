@@ -16,51 +16,21 @@
 		}
 	});
 
-	$effect(() => {
-		if (!browser) {
-			return;
-		}
-		if (!('PublicKeyCredential' in window)) {
-			return;
-		}
-
-		navigator.credentials
-			.get({
-				publicKey: {
-					challenge: new Uint8Array(32),
-					allowCredentials: [],
-					userVerification: 'discouraged'
-				},
-				mediation: 'silent'
+	function loginWithWebAuthn() {
+		submitting = true;
+		loginWebAuthn()
+			.then((creds) => {
+				authStore.authState = creds;
 			})
-			.then((credential) => {
-				if (credential) {
-					hasWebauthnCredential = true;
-				}
+			.catch((err) => {
+				console.error(err);
+				alert(
+					'An error occurred while logging you in using your device credential. Please log in using your username/password.'
+				);
+				hasWebauthnCredential = false;
 			})
-			.catch((error) => {
-				if (error.name === 'NotAllowedError') {
-					console.log(`WebAuthn access denied or no credentials: ${error}`);
-					return;
-				}
-			});
-	});
-
-	$effect(() => {
-		if (hasWebauthnCredential && turnstileStore.token()) {
-			loginWebAuthn()
-				.then((creds) => {
-					authStore.authState = creds;
-				})
-				.catch((err) => {
-					console.error(err);
-					alert(
-						'An error occurred while logging you in using your device credential. Please log in using your username/password.'
-					);
-					hasWebauthnCredential = false;
-				});
-		}
-	});
+			.finally(() => (submitting = false));
+	}
 
 	$effect(() => {
 		if (turnstileStore.isExpired() || turnstileStore.isTimeout()) {
@@ -131,6 +101,26 @@
 						</div>
 					{:else}
 						Submit
+					{/if}
+				</button>
+				<button
+					type="submit"
+					class="h-12 rounded-xl bg-primary md:col-span-2"
+					onclick={() => loginWithWebAuthn()}
+				>
+					{#if submitting}
+						<div
+							class="text-surface inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+							role="status"
+						>
+							<span
+								class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
+							>
+								Loading...</span
+							>
+						</div>
+					{:else}
+						Use Device Credential
 					{/if}
 				</button>
 				<div class="md:col-span-2">

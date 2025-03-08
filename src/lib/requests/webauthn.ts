@@ -117,6 +117,7 @@ export async function loginWebAuthn() {
         const completeResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/webauthn/login/complete`, {
             method: "POST",
             headers: {
+                "Session-ID": options.SessionID,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(response)
