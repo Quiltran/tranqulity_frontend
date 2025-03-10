@@ -16,7 +16,11 @@ class WebsocketStore {
     private maxRetry: number = 5;
     private disconnectCallback = async () => {
         if (this.options?.disconnectCallback) this.options.disconnectCallback(this.retryTries);
-		await authStore.refreshToken();
+        try {
+		    await authStore.refreshToken();
+        } catch (err) {
+            console.error(err)
+        }
 		if (!authStore.authState?.websocket_token) {
 			throw new Error('Unable to get new websocket token.');
 		}
@@ -46,7 +50,7 @@ class WebsocketStore {
             this.pingTimeout = setInterval(() => {
                 console.log("timeout")
                 this.ws?.send(JSON.stringify({ "type": "Ping" }))
-            }, 5000);
+            }, 3000);
         }
 
         this.ws.onclose = async () => {
@@ -57,7 +61,9 @@ class WebsocketStore {
 
             this.retryTries += 1;
             if (this.retryTries == this.maxRetry) {
-                this.options?.failCallback();
+                if (this.options?.failCallback) {
+                    this.options.failCallback();
+                }
                 this.disconnect();
                 return;
             }
@@ -70,9 +76,7 @@ class WebsocketStore {
         }
 
         this.ws.onmessage = (event) => {
-            console.log("HIT", event);
             const data = JSON.parse(event.data);
-            console.log(data)
             this.options?.messageReceivedCallback(data);
         }
     }
