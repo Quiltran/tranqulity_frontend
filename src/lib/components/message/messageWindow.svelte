@@ -7,6 +7,7 @@
 	import { tick } from 'svelte';
 	import MessageElement from './message.svelte';
 	import Paperclip from '$lib/svgs/paperclip.svelte';
+	import { uploadAttachment } from '$lib/requests/attachment';
 
 	let selectedChannel = $derived(guildStore.guildState.currentChannel);
 	let selectedGuild: Guild | null = $derived(guildStore.guildState.currentGuild);
@@ -33,28 +34,7 @@
 			let output: number[] = [];
 			if (!fileElement || !fileElement.files) return;
 			for (let file of fileElement.files) {
-				let formData = new FormData();
-				formData.append('name', file.name);
-				formData.append('file', file);
-
-				let response = await fetch(`${import.meta.env.VITE_API_URL}/api/attachment`, {
-					method: 'POST',
-					headers: {
-						authorization: `Bearer ${authStore.authState?.token ?? ''}`
-					},
-					body: formData
-				});
-				if (!response.ok) {
-					alert('An error occurred while uploading your attachments.');
-					throw new Error('Unable to upload attachments.');
-				}
-
-				if (response.status !== 201) {
-					alert('The server responded with an error while uploading your attachment.');
-					throw new Error('Unable to upload attachments.');
-				}
-
-				let data = (await response.json()) as Attachment;
+				const data = await uploadAttachment(authStore.authState?.token ?? "", file)
 				output.push(data.id);
 			}
 
@@ -249,7 +229,7 @@
 							fileElement?.click();
 						}}
 					>
-						<Paperclip />
+						<Paperclip classes="size-5" />
 					</button>
 				</div>
 				<button type="submit" class="aspect-square h-16 rounded-2xl bg-accent"> Send </button>

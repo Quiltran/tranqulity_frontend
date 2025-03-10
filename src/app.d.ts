@@ -58,6 +58,8 @@ declare global {
 		username: string,
 		email: string,
 		notification_registered: boolean
+		avatar_url: string,
+		avatar_id: number | null,
 	}
 
 	interface Attachment {
