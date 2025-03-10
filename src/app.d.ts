@@ -40,6 +40,7 @@ declare global {
 		id: number,
 		author: string,
 		author_id: number,
+		author_avatar: string,
 		content: string,
 		guild: string,
 		channel: string,
