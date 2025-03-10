@@ -16,7 +16,7 @@ export async function createGuild(guildName: string, description: string, token:
         return [];
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("An error occurred while creating your guild.");
+        throw new Error("An error occurred while creating your guild.");
     }
 
     let data = await response.json();

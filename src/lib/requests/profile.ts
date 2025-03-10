@@ -11,7 +11,7 @@ export async function getUserProfile(token: string) {
         return {} as Profile;
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("an error occurred while getting profile")
+        throw new Error("an error occurred while getting profile")
     }
     let data = await response.json();
     return data as Profile;

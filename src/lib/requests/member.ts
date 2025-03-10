@@ -14,7 +14,7 @@ export async function getMembers(token: string, guildId: string) {
         return [];
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("An error occurred while getting members.");
+        throw new Error("An error occurred while getting members.");
     }
     let data = await response.json();
     return data as Member[];

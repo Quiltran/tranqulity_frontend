@@ -14,7 +14,7 @@ export async function getMessages(guildId: string, channelId: string, pageNumber
         return [];
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("An error occurred while getting messages.");
+        throw new Error("An error occurred while getting messages.");
     }
     let data = await response.json();
     return data as Message[];
@@ -39,7 +39,7 @@ export async function createChannel(guildId: number, name: string, token: string
         return [];
     } else if (!response.ok) {
         console.error(response.status, response.statusText);
-        Promise.reject("An error occurred while creating messages.");
+        throw new Error("An error occurred while creating messages.");
     }
     let newChannel = await response.json();
     return newChannel as Channel;
