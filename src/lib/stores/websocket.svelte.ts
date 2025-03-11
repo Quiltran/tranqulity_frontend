@@ -17,17 +17,27 @@ class WebsocketStore {
     private disconnectCallback = async () => {
         if (this.options?.disconnectCallback) this.options.disconnectCallback(this.retryTries);
         try {
-		    await authStore.refreshToken();
+            await authStore.refreshToken();
         } catch (err) {
             console.error(err)
         }
-		if (!authStore.authState?.websocket_token) {
-			throw new Error('Unable to get new websocket token.');
-		}
+        if (!authStore.authState?.websocket_token) {
+            throw new Error('Unable to get new websocket token.');
+        }
     }
 
     maxRetryAttempts() {
         return this.maxRetry;
+    }
+
+    onVisibilityChange = async () => {
+        if (document.visibilityState === 'visible') {
+            try {
+                await this.disconnectCallback();
+            } catch (err) {
+                console.error('Refresh or reconnect failed on visibility change:', err);
+            }
+        }
     }
 
     connect(options: WebsocketCallbackProps) {
@@ -41,6 +51,8 @@ class WebsocketStore {
         }
 
         this.ws = new WebSocket(`${this.url}/${authStore.authState.id}/${authStore.authState.websocket_token}`);
+
+        document.addEventListener('visibilitychange', this.onVisibilityChange)
 
         this.ws.onopen = () => {
             this.options?.reconnectCallback();
@@ -68,10 +80,15 @@ class WebsocketStore {
                 return;
             }
 
-            try {
-                await this.disconnectCallback();
-            } catch (err) {
-                return;
+            if (document.visibilityState === 'visible') {
+                try {
+                    await this.disconnectCallback();
+                } catch (err) {
+                    this.disconnect()
+                    return;
+                }
+            } else {
+                console.log('App is not visible, delaying reconnect.');
             }
         }
 
@@ -86,6 +103,7 @@ class WebsocketStore {
             this.ws.close();
             this.ws = null;
             clearInterval(this.pingTimeout);
+            document.removeEventListener('visibilitychange', this.onVisibilityChange)
         }
     }
 
@@ -112,9 +130,9 @@ class WebsocketStore {
         if (!this.options) {
             this.options = {
                 messageReceivedCallback: messageCallback,
-                failCallback: () => {},
+                failCallback: () => { },
                 disconnectCallback: () => new Promise(() => ""),
-                reconnectCallback: () => {},
+                reconnectCallback: () => { },
             }
             return;
         }
