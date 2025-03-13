@@ -7,6 +7,7 @@ export interface AuthState {
     refresh_token: string | null,
     token: string | null,
     websocket_token: string | null,
+    avatar_url: string | null,
 }
 
 class AuthStore {
@@ -92,6 +93,7 @@ class AuthStore {
                 this.logout();
             }
             let data = await response.json() as AuthState;
+            console.log(data);
             this.authState = data;
             localStorage.setItem('auth', JSON.stringify(data));
         } catch (err) {
