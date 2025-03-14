@@ -50,6 +50,12 @@ sw.addEventListener('fetch', (event) => {
                 return response;
             }
         }
+        if (url.pathname.includes("/api/attachment")) {
+            const response = await cache.match(url.pathname);
+            if (response) {
+                return response;
+            }
+        }
 
         try {
             const response = await fetch(event.request);
